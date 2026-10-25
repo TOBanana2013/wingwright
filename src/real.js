@@ -71,6 +71,9 @@ const REAL = {
     tail: 'medium', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 100, ceiling: 8000 },
   yak3: { name: 'Yakovlev Yak-3', role: 'WWII fighter (Soviet Union)', year: 1944, real: true, freeOnly: true, span: 9.2, S: 14.85, length: 8.5, width: 1.0, height: 1.5,
     mass: 2690, fuel: 300, engine: 'prop', power: 960, vref: 30, props: 'nose', cd0: 0.021, nlim: 8, clmax: 1.45, flapCl: 0.5, incidence: 2,
-    tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 }
+    tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 },
+  an225: { name: 'Antonov An-225 Mriya', role: 'Biggest plane ever built', year: 1988, real: true, freeOnly: true, span: 88.4, S: 905, length: 84.0, width: 6.4, height: 7.0,
+    mass: 600000, fuel: 150000, engine: 'jet', thrust: 1377000, jets: 6, cd0: 0.021, nlim: 2.5, clmax: 1.6, flapCl: 1.1, incidence: 2.5,
+    tail: 'large', shape: 'rounded', material: 'alu', sweep: 30, wing: 'high', twinFin: true }
 };
 if (typeof module !== 'undefined') module.exports = REAL;

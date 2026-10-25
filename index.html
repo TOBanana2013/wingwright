@@ -198,14 +198,14 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       </div>
       <div id="custom" class="rail">
       <div class="group">
+        <div class="seg"><span class="label">Size (length of the plane)</span><div class="opts two" id="sizeopts">
+          <input type="radio" name="size" id="z-small" value="small"><label class="o" for="z-small">Small · under 25 ft</label>
+          <input type="radio" name="size" id="z-medium" value="medium"><label class="o" for="z-medium">Medium · 25–100 ft</label>
+          <input type="radio" name="size" id="z-large" value="large"><label class="o" for="z-large">Large · 100–300 ft</label>
+          <input type="radio" name="size" id="z-huge" value="huge"><label class="o" for="z-huge">Stupendously large · 350 ft+</label>
+        </div><span class="hint" id="size-hint"></span></div>
         <span class="label">Start from</span>
-        <div class="presets">
-          <button class="chip" data-preset="trainer">Trainer</button>
-          <button class="chip" data-preset="glider">Motor glider</button>
-          <button class="chip" data-preset="racer">Racer</button>
-          <button class="chip" data-preset="cargo">Cargo hauler</button>
-          <button class="chip" data-preset="brick">Flying brick</button>
-        </div>
+        <div class="presets" id="presets"></div>
       </div>
 
       <div class="group">
@@ -882,7 +882,10 @@ const REAL = {
     tail: 'medium', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 100, ceiling: 8000 },
   yak3: { name: 'Yakovlev Yak-3', role: 'WWII fighter (Soviet Union)', year: 1944, real: true, freeOnly: true, span: 9.2, S: 14.85, length: 8.5, width: 1.0, height: 1.5,
     mass: 2690, fuel: 300, engine: 'prop', power: 960, vref: 30, props: 'nose', cd0: 0.021, nlim: 8, clmax: 1.45, flapCl: 0.5, incidence: 2,
-    tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 }
+    tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 },
+  an225: { name: 'Antonov An-225 Mriya', role: 'Biggest plane ever built', year: 1988, real: true, freeOnly: true, span: 88.4, S: 905, length: 84.0, width: 6.4, height: 7.0,
+    mass: 600000, fuel: 150000, engine: 'jet', thrust: 1377000, jets: 6, cd0: 0.021, nlim: 2.5, clmax: 1.6, flapCl: 1.1, incidence: 2.5,
+    tail: 'large', shape: 'rounded', material: 'alu', sweep: 30, wing: 'high', twinFin: true }
 };
 
 
@@ -893,16 +896,45 @@ const PRESETS = {
   glider:  { length: 9, height: 1.0, width: 0.8, span: 18, chord: 1.0, incidence: 4, power: 60, fuel: 50, material: 'carbon', shape: 'sleek', tail: 'large' },
   racer:   { length: 7, height: 1.0, width: 0.9, span: 7, chord: 1.3, incidence: 2, power: 450, fuel: 120, material: 'carbon', shape: 'sleek', tail: 'small' },
   cargo:   { length: 13, height: 2.4, width: 2.2, span: 17, chord: 2.4, incidence: 4, power: 420, fuel: 220, material: 'alu', shape: 'boxy', tail: 'large' },
-  brick:   { length: 6, height: 2.3, width: 2.2, span: 6, chord: 0.9, incidence: 1, power: 60, fuel: 250, material: 'wood', shape: 'boxy', tail: 'small' }
+  brick:   { length: 6, height: 2.3, width: 2.2, span: 6, chord: 0.9, incidence: 1, power: 60, fuel: 250, material: 'wood', shape: 'boxy', tail: 'small' },
+  ultra:   { length: 5.5, height: 1.0, width: 0.8, span: 9, chord: 1.2, incidence: 3, power: 45, fuel: 30, material: 'carbon', shape: 'rounded', tail: 'medium' },
+  bush:    { length: 12, height: 1.8, width: 1.6, span: 16, chord: 2, incidence: 3, power: 500, fuel: 300, material: 'alu', shape: 'boxy', tail: 'large' },
+  airliner: { length: 45, height: 5, width: 5, span: 50, chord: 6, incidence: 3, power: 6000, fuel: 8000, material: 'alu', shape: 'rounded', tail: 'large' },
+  lifter:  { length: 75, height: 8, width: 8, span: 85, chord: 10, incidence: 3, power: 15000, fuel: 25000, material: 'alu', shape: 'boxy', tail: 'large' },
+  whale:   { length: 150, height: 16, width: 16, span: 200, chord: 20, incidence: 3, power: 60000, fuel: 100000, material: 'carbon', shape: 'rounded', tail: 'large' },
+  mega:    { length: 250, height: 25, width: 25, span: 330, chord: 32, incidence: 3, power: 180000, fuel: 300000, material: 'carbon', shape: 'boxy', tail: 'large' }
 };
+const PRESET_NAMES = { ultra: 'Ultralight', racer: 'Racer', brick: 'Flying brick', trainer: 'Trainer', glider: 'Motor glider', cargo: 'Cargo hauler', bush: 'Bush plane', airliner: 'Airliner', lifter: 'Heavy lifter', whale: 'Sky whale', mega: 'Mega freighter' };
+// size classes: slider ranges [min, max, step] for each, by the plane's length (1 ft = 0.3048 m)
+const SIZES = {
+  small: { hint: 'Under 25 ft (7.6 m) long: ultralights, racers and sport planes.', presets: ['ultra', 'racer', 'brick'],
+    r: { length: [3, 7.6, 0.1], height: [0.6, 1.8, 0.1], width: [0.5, 1.6, 0.1], span: [3, 14, 0.5], chord: [0.5, 2, 0.1], power: [15, 500, 5], fuel: [10, 300, 5] } },
+  medium: { hint: '25 to 100 ft (7.6 to 30.5 m): trainers, gliders, bush planes and small cargo planes.', presets: ['trainer', 'glider', 'cargo', 'bush'],
+    r: { length: [7.6, 30.5, 0.1], height: [0.9, 4, 0.1], width: [0.7, 4, 0.1], span: [6, 45, 0.5], chord: [0.8, 6, 0.1], power: [40, 3000, 10], fuel: [20, 3000, 10] } },
+  large: { hint: '100 to 300 ft (30.5 to 91 m): airliner and jumbo-jet sizes.', presets: ['airliner', 'lifter'],
+    r: { length: [30.5, 91.4, 0.1], height: [2.5, 10, 0.1], width: [2.5, 10, 0.1], span: [25, 120, 1], chord: [3, 15, 0.1], power: [1000, 40000, 100], fuel: [1000, 60000, 100] } },
+  huge: { hint: '350 ft (107 m) and longer: bigger than any plane ever built. The An-225, the biggest real one, is 276 ft.', presets: ['whale', 'mega'],
+    r: { length: [106.7, 300, 0.1], height: [6, 30, 0.5], width: [6, 30, 0.5], span: [80, 400, 1], chord: [8, 40, 0.5], power: [20000, 400000, 1000], fuel: [20000, 800000, 1000] } }
+};
+const sizeOf = len => len < 7.6 ? 'small' : len < 30.5 ? 'medium' : len < 100 ? 'large' : 'huge';
+let sizeKey = 'medium';
+function setSize(k) {
+  sizeKey = k; const S = SIZES[k];
+  for (const [id, [lo, hi, st]] of Object.entries(S.r)) { const el = $(id); el.min = lo; el.max = hi; el.step = st; }
+  $('z-' + k).checked = true; $('size-hint').textContent = S.hint;
+  $('presets').innerHTML = S.presets.map(p => `<button class="chip" data-preset="${p}">${PRESET_NAMES[p]}</button>`).join('');
+  $('presets').querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => load(PRESETS[b.dataset.preset])));
+}
 const $ = id => document.getElementById(id);
-const SLIDERS = { length: v => v.toFixed(1) + ' m', height: v => v.toFixed(1) + ' m', width: v => v.toFixed(1) + ' m',
-  span: v => v.toFixed(1) + ' m', chord: v => v.toFixed(1) + ' m', incidence: v => v.toFixed(1) + '°', power: v => v + ' kW', fuel: v => v + ' kg' };
+const nf = v => Math.round(v).toLocaleString('en-GB');
+const SLIDERS = { length: v => `${v.toFixed(1)} m · ${Math.round(v / 0.3048)} ft`, height: v => v.toFixed(1) + ' m', width: v => v.toFixed(1) + ' m',
+  span: v => v.toFixed(1) + ' m', chord: v => v.toFixed(1) + ' m', incidence: v => v.toFixed(1) + '°', power: v => nf(v) + ' kW', fuel: v => nf(v) + ' kg' };
 const RADIOS = ['material', 'shape', 'tail'];
 let plane = { ...PRESETS.trainer }, spec, mode = 'custom', realKey = 'a320';
 
 function load(p) {
   plane = { ...p };
+  if (typeof $ === 'function' && $('presets')) setSize(sizeOf(p.length));
   for (const k in SLIDERS) $(k).value = p[k];
   for (const k of RADIOS) document.querySelector(`input[name=${k}][value=${p[k]}]`).checked = true;
   refresh();
@@ -950,7 +982,7 @@ function sizeCanvas(c) {
   c.width = Math.max(1, Math.round(r.width * d)); c.height = Math.max(1, Math.round(r.height * d));
   const ctx = c.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0); return { ctx, w: r.width, h: r.height };
 }
-function finH(p = plane) { return p.real ? p.height * (p.tallFin ? 1.8 : 1.35) : TAILS[p.tail].frac * 4.5; }
+function finH(p = plane) { return p.real ? p.height * (p.tallFin ? 1.8 : 1.35) : TAILS[p.tail].frac * 4.5 * csc(p); }
 
 function dimLine(ctx, x1, y1, x2, y2, label, vertical) {
   ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
@@ -985,8 +1017,8 @@ function drawPlan() {
   const sw = Math.tan((plane.sweep || 0) * Math.PI / 180);
   const taper = plane.taper || (plane.real ? (plane.sweep ? 0.3 : plane.ellipse ? 0.45 : 0.6) : 0.7);
   const cr = 2 * (plane.real ? plane.S : b * cw) / (b * (1 + taper)), ct = cr * taper;
-  const wingY = (plane.wingY || (plane.real && plane.sweep ? 0.33 : 0.25)) * L, tailY = L - 0.9;
-  const tf = plane.real ? 0.34 * b : TAILS[plane.tail].frac * b, tc = plane.real ? cr * 0.45 : 0.55 + TAILS[plane.tail].frac;
+  const wingY = (plane.wingY || (plane.real && plane.sweep ? 0.33 : 0.25)) * L, tailY = L - 0.9 * csc(plane);
+  const tf = plane.real ? 0.34 * b : TAILS[plane.tail].frac * b, tc = plane.real ? cr * 0.45 : (0.55 + TAILS[plane.tail].frac) * csc(plane);
   const trap = (yRoot, half, c1, c2, swp) => { ctx.beginPath(); ctx.moveTo(cx, Y(yRoot)); ctx.lineTo(cx + half * sc, Y(yRoot + half * swp)); ctx.lineTo(cx + half * sc, Y(yRoot + half * swp + c2)); ctx.lineTo(cx, Y(yRoot + c1)); ctx.lineTo(cx - half * sc, Y(yRoot + half * swp + c2)); ctx.lineTo(cx - half * sc, Y(yRoot + half * swp)); ctx.closePath(); ctx.fill(); ctx.stroke(); };
   ctx.fillStyle = fill; ctx.strokeStyle = ink; ctx.lineWidth = 1.5;
   trap(wingY, b / 2, cr, ct, plane.real ? sw : 0.15 * cw / (b / 2));
@@ -1026,10 +1058,14 @@ function drawPlan() {
   dimLine(ctx, hx, groundY - gearH(plane) * scS, hx, groundY - (gearH(plane) + H) * scS, 'H ' + H.toFixed(1), true);
 }
 
-function noseProp(p = plane) { return !p.real || p.props === 'nose'; }
+const csc = p => p.real ? 1 : Math.max(1, p.length / 9);   // custom planes: tail and engine parts grow with the plane
+function noseProp(p = plane) { return p.real ? p.props === 'nose' : p.length < 20; }
 function propR(p = plane) { return p.real ? (p.power > 2000 ? 2.0 : p.power > 500 ? 1.6 : 0.95) : Math.min(1.1, 0.6 + p.power / 1000); }
 function enginePos(p = plane) {
-  if (!p.real || p.props === 'nose') return [];
+  if (!p.real) { if (p.length < 20) return []; const w = Math.max(1.1, Math.min(14, p.span * 0.03)), ys = p.length < 60 ? [0.3] : p.length < 120 ? [0.25, 0.5] : [0.2, 0.42, 0.64];
+    return ys.map(y => ({ y, w, l: w * 3.2, prop: w * 1.4 })); }
+  if (p.props === 'nose') return [];
+  if (p.jets === 6) return [{ y: 0.22, w: 2.4, l: 5.5 }, { y: 0.38, w: 2.4, l: 5.5 }, { y: 0.54, w: 2.4, l: 5.5 }];
   if (p.pods) return p.pods;
   const b = p.span;
   if (p.props === 'wing2') return [{ y: 0.3, w: 1.1, l: 4.2, prop: 2.0 }];
@@ -1074,7 +1110,7 @@ function drawSide(ctx, x, y, s, theta, thr, broken, stroke) {
   ctx.save(); ctx.translate(wx0, wy0); ctx.rotate(-plane.incidence * Math.PI / 180);
   ctx.fillStyle = broken ? '#c22f2f' : fill; const c = plane.chord;
   ctx.beginPath(); ctx.moveTo(0.05, 0); ctx.quadraticCurveTo(0, -0.18 * c, -c * 0.35, -0.16 * c); ctx.quadraticCurveTo(-c * 0.8, -0.1 * c, -c, 0); ctx.quadraticCurveTo(-c * 0.5, 0.06 * c, 0.05, 0); ctx.fill(); ctx.stroke(); ctx.restore();
-  ctx.fillStyle = fill; if (!plane.noHT) ctx.fillRect(t + 0.01 * L, plane.ttail ? -g - 0.93 * H - fh : -g - 0.98 * H, plane.real ? 0.12 * L : 0.5 + tf * 2.5, plane.real ? 0.025 * L : 0.14);
+  ctx.fillStyle = fill; if (!plane.noHT) ctx.fillRect(t + 0.01 * L, plane.ttail ? -g - 0.93 * H - fh : -g - 0.98 * H, plane.real ? 0.12 * L : (0.5 + tf * 2.5) * csc(plane), plane.real ? 0.025 * L : 0.14 * csc(plane));
   for (const e of enginePos()) {
     const ex = wx0 - (plane.sweep ? e.y * plane.span / 2 * Math.tan(plane.sweep * Math.PI / 180) * 0.15 : 0), ey = plane.wing === 'high' ? wy0 + 0.6 * e.w : wy0 + 0.75 * e.w;
     ctx.fillStyle = fill; ctx.beginPath(); ctx.ellipse(ex - e.l * 0.15, ey, e.l / 2, e.w / 2, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -1089,7 +1125,7 @@ function drawSide(ctx, x, y, s, theta, thr, broken, stroke) {
 }
 
 document.querySelectorAll('.rail input').forEach(i => i.addEventListener('input', refresh));
-document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => load(PRESETS[b.dataset.preset])));
+document.querySelectorAll('input[name=size]').forEach(i => i.addEventListener('change', () => load(PRESETS[SIZES[i.value].presets[0]])));
 window.addEventListener('resize', () => { if (!$('hangar').hidden) drawPlan(); });
 if (window.matchMedia) { const mq = matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) mq.addEventListener('change', () => drawPlan()); }
 new MutationObserver(() => { if (!$('hangar').hidden) drawPlan(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -1450,6 +1486,7 @@ const LIVERY = {
   p51: { body: '#c6cbd1', belly: '#bfc4ca', stripe: '#1e1f22', tail: '#c6cbd1', tailStripe: '#d9b622', wing: '#c0c5cb', spinner: '#d9b622' },
   fw190: { body: '#6e7666', belly: '#a9b7c2', stripe: '#d4c23a', tail: '#6e7666', tailStripe: '#d4c23a', wing: '#6e7666', spinner: '#2f3230' },
   yak3: { body: '#7c848b', belly: '#a7b2bb', stripe: '#7c848b', tail: '#7c848b', tailStripe: '#c0272d', wing: '#7c848b', spinner: '#c0272d' },
+  an225: { body: '#f2f3f5', belly: '#c9ced6', stripe: '#1f5aa8', tail: '#f2f3f5', tailStripe: '#f2c230', wing: '#e6e9ed', engine: '#d9dde2' },
   redhawk: { body: '#6d7076', belly: '#5d6066', stripe: '#b3262d', tail: '#b3262d', tailStripe: '#f2f2f2', wing: '#6d7076', engine: '#45484d' }
 };
 const MATCOL = { wood: '#c99a5b', alu: '#b8c3cc', carbon: '#3e464e' };
@@ -1498,8 +1535,8 @@ function buildModel(p, gearDown, lvIn) {
   }
   const xLE = y => xr - (Math.abs(y) - yr) * sw * (p.real ? 1 : 0), zW = y => zw + (Math.abs(y) - yr) * dih, cAt = y => cr + (ct - cr) * Math.max(0, (Math.abs(y) - yr) / (hb - yr));
   // tailplane
-  const frac = p.real ? (p.aero ? 0.4 : 0.34) : TAILS[p.tail].frac, tspan = frac * b, tc = p.real ? Math.max(cr * 0.42, L * 0.07) : 0.55 + frac;
-  const xt = -L / 2 + 0.25, fh = finH(p);
+  const frac = p.real ? (p.aero ? 0.4 : 0.34) : TAILS[p.tail].frac, tspan = frac * b, tc = p.real ? Math.max(cr * 0.42, L * 0.07) : (0.55 + frac) * csc(p);
+  const xt = -L / 2 + 0.25 * csc(p), fh = finH(p);
   const fc = Math.max(tc * 1.3, L * 0.12), zf = topAt(0.9) - 0.05;
   if (!p.noHT) {
     const zt = p.ttail ? zf + fh * 0.95 : zc(0.92), tsw = p.real ? sw * 0.9 : 0;
@@ -1771,7 +1808,7 @@ function renderChase(dt) {
   const L = plane.length, b = plane.span, H = plane.height, g = gearH(plane);
   const O = [f.e, f.n, f.h + g + H / 2];
   chaseYaw += wrap(f.psi - chaseYaw) * Math.min(1, (dt || 0.016) * 2.2);
-  const D = Math.max(11, Math.min(170, L * 1.7 + b * (plane.noFin ? 1.1 : 0.45))) * (world.mode === 'stunt' ? 3.2 : 1), el = (world.mode === 'stunt' ? 14 : 11) * DEG;
+  const D = Math.max(11, Math.min(Math.max(170, L * 2), L * 1.7 + b * (plane.noFin ? 1.1 : 0.45))) * (world.mode === 'stunt' ? 3.2 : 1), el = (world.mode === 'stunt' ? 14 : 11) * DEG;
   const eye = [O[0] - Math.sin(chaseYaw) * D * Math.cos(el), O[1] - Math.cos(chaseYaw) * D * Math.cos(el), O[2] + D * Math.sin(el)];
   eye[2] = Math.max(eye[2], groundAt(world, eye[0], eye[1]) + 2.5);
   const pitch = Math.atan2(O[2] - eye[2], Math.hypot(O[0] - eye[0], O[1] - eye[1]));

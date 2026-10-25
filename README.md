@@ -17,4 +17,4 @@ A build-a-plane flight simulator that runs in the browser. Design your own plane
 - `src/real.js`: real aircraft data
 - `src/template.html`: page, UI, 3D renderer, fight and stunt systems
 - `build.py`: builds `index.html` from the files in `src/` (`python3 build.py`)
-- `tests/`: headless Node autopilot tests (`node tests/t8.js free`)
+- `tests/`: headless Node autopilot tests (`node tests/t8.js free`, `node tests/t21_sizes.js` for the size classes)
