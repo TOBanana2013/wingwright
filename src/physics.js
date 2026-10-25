@@ -68,8 +68,10 @@ function specs(p) {
   s.range = s.endurance * Math.max(s.vStall * 1.4, s.vMax * 0.6);
   const vTd = s.vStallF * 1.25;
   s.landRoll = vTd * vTd / (2 * 0.43 * G) + vTd * 4;
-  s.homeLen = p.real ? Math.min(4500, Math.max(600, Math.ceil((s.roll * 1.35 + 200) / 100) * 100)) : 600;
-  s.rwyLen = Math.max(800, Math.ceil((s.landRoll * 2.4 + 300) / 100) * 100);
+  // runways are sized for the plane: long enough to take off (home) and to land and stop (other fields), wide enough for the wings
+  s.homeLen = Math.min(9000, Math.max(300, Math.ceil(p.length * 3 / 100) * 100, Math.ceil((s.roll * 1.35 + 200) / 100) * 100));
+  s.rwyLen = Math.min(9000, Math.max(400, Math.ceil(p.length * 4 / 100) * 100, Math.ceil((s.landRoll * 2.4 + 300) / 100) * 100));
+  s.rwyWid = s.span > 80 ? Math.min(260, Math.round(s.span * 0.7 / 5) * 5) : s.span > 40 ? 60 : s.span > 20 ? 45 : 30;
   return s;
 }
 
@@ -116,7 +118,7 @@ function makeMissionWorld(s, seed) {
   let r = seed || (Math.random() * 1e9) | 0;
   const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
   const home = s.homeLen, rl = s.rwyLen;
-  const pp = pathParams(s), wid = s.span > 40 ? 60 : s.span > 20 ? 45 : 30;
+  const pp = pathParams(s), wid = s.rwyWid;
   const start = Math.max(3500, home + 2500, Math.min(home, s.roll) + pp.cruise / Math.tan(pp.climb) + finalLen(s) + 4000);
   const reach = start + Math.max(3000, Math.min(15000, s.range * 0.3 - start));
   const dist = start + rnd() * (reach - start);
@@ -151,7 +153,7 @@ function seaWorld(runways, target, landAt, extra) {
 function makeSituationWorld(s, id, seed) {
   let r = seed || (Math.random() * 1e9) | 0;
   const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
-  const wid = s.span > 40 ? 60 : s.span > 20 ? 45 : 30, Ff = finalLen(s), pp = pathParams(s);
+  const wid = s.rwyWid, Ff = finalLen(s), pp = pathParams(s);
   let w;
   if (id === 'normal') {
     w = makeMissionWorld(s, seed); w.runways = w.runways.filter(x => x.kind !== 'fake');
@@ -216,7 +218,7 @@ function safeGround(world, e, n, gnd) { return gnd <= 20 || world.runways.some(w
 function makeFreeWorld(s, seed) {
   let r = seed || (Math.random() * 1e9) | 0;
   const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
-  const rl = s.rwyLen, wid = s.span > 40 ? 60 : s.span > 20 ? 45 : 30, scale = Math.max(1, rl / 1000);
+  const rl = s.rwyLen, wid = s.rwyWid, scale = Math.max(1, rl / 1000);
   const names = ['Kestrel Field', 'Marsh End', 'Hollow Down', 'Ridgeway', 'Saltings', 'Fenwick', 'Old Quarry', 'Brackenmoor', 'Wethercombe', 'Lark Rise', 'Mill Green', 'Copper Beech'];
   const runways = [{ e: 0, n: 0, hdg: 0, len: s.homeLen, wid: Math.max(30, wid), kind: 'home', name: 'Home field' }];
   let tries = 0;
@@ -235,7 +237,7 @@ function makeMountainWorld(s, seed, opt) {
   opt = opt || {};
   let r = seed || (Math.random() * 1e9) | 0;
   const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
-  const pp = pathParams(s), rl = s.rwyLen, wid = s.span > 40 ? 60 : s.span > 20 ? 45 : 30, Ff = finalLen(s);
+  const pp = pathParams(s), rl = s.rwyLen, wid = s.rwyWid, Ff = finalLen(s);
   const Hr = opt.elev || Math.round(300 + rnd() * 200), cruiseC = pp.cruise + Hr, ceil = s.ceiling + Hr + (opt.ceilExtra || 0);
   const lift = Math.min(s.homeLen, s.roll);
   const start = Math.max(s.homeLen + 3000, lift + cruiseC / Math.tan(pp.climb) + Ff + 7000);

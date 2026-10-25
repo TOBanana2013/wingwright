@@ -74,6 +74,9 @@ const REAL = {
     tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 },
   an225: { name: 'Antonov An-225 Mriya', role: 'Biggest plane ever built', year: 1988, real: true, freeOnly: true, span: 88.4, S: 905, length: 84.0, width: 6.4, height: 7.0,
     mass: 600000, fuel: 150000, engine: 'jet', thrust: 1377000, jets: 6, cd0: 0.021, nlim: 2.5, clmax: 1.6, flapCl: 1.1, incidence: 2.5,
-    tail: 'large', shape: 'rounded', material: 'alu', sweep: 30, wing: 'high', twinFin: true }
+    tail: 'large', shape: 'rounded', material: 'alu', sweep: 30, wing: 'high', twinFin: true },
+  b121: { name: 'B-121 Sky Fortress', role: 'Giant bomber (made up for the game)', year: 0, real: true, freeOnly: true, span: 350, S: 18000, length: 304.8, width: 22, height: 24.4, finH: 7.6,
+    mass: 5000000, fuel: 1000000, engine: 'jet', thrust: 15000000, jets: 24, pods: [0.12, 0.22, 0.32, 0.42, 0.52, 0.62].map(y => ({ y, w: 7, l: 18 })), cd0: 0.02, nlim: 2.5, clmax: 1.5, flapCl: 0.8, incidence: 3,
+    tail: 'large', shape: 'boxy', material: 'carbon', sweep: 30, taper: 0.3, wing: 'high', ceiling: 9000, maxBank: 35 }
 };
 if (typeof module !== 'undefined') module.exports = REAL;
