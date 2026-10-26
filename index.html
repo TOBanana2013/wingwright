@@ -150,6 +150,58 @@ button:focus-visible, .chip:focus-visible { outline: 2px solid var(--accent); ou
 .slots button.x { border-left: 1px solid var(--line); color: var(--muted); padding: 4px 8px; }
 #myplanes .hint { font-size: 12.5px; color: var(--muted); }
 .coachopt { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.touchui { position: absolute; inset: 0; pointer-events: none; }
+.touchui > * { pointer-events: auto; }
+.ttop { position: absolute; left: 16px; bottom: calc(22px + clamp(120px, 34vmin, 170px)); display: flex; flex-direction: column; gap: 5px; }
+.tbtn { font: 600 14px var(--f-body); color: #f2f6f9; background: rgba(8,14,20,.6); border: 1px solid rgba(255,255,255,.35); border-radius: 12px; min-height: 48px; padding: 4px 8px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.tbtn.sm { min-height: 34px; font-size: 12.5px; border-radius: 8px; padding: 2px 10px; }
+.tbtn[aria-pressed="true"], .tbtn.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tbtn.fire { position: absolute; right: 14px; bottom: calc(22px + clamp(130px, 46vmin, 230px)); width: 62px; height: 62px; border-radius: 50%; padding: 0; background: rgba(194,47,47,.85); font-size: 14px; }
+.tbtn.fire.on { background: #ff4a3a; }
+.tbtns { position: absolute; right: 86px; bottom: 12px; display: grid; grid-template-columns: repeat(3, 70px); gap: 6px; }
+.tbtns .tbtn { min-height: 46px; font-size: 13px; padding: 2px 4px; }
+.touchonly { display: none; } html.touch .touchonly { display: inline-flex; }
+html.touch .side { top: 8px; } html.touch .side #mini { width: 130px; height: min(110px, 24vh); }
+.stickpad { position: absolute; left: 16px; bottom: 16px; width: clamp(120px, 34vmin, 170px); aspect-ratio: 1; border-radius: 50%; background: rgba(8,14,20,.32); border: 2px solid rgba(255,255,255,.45); touch-action: none; }
+.stickpad .knob { position: absolute; left: 50%; top: 50%; width: 42%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 2px 6px rgba(0,0,0,.35); transform: translate(-50%, -50%); pointer-events: none; }
+.stickpad .lab { position: absolute; left: 0; right: 0; text-align: center; font: 600 10px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85); pointer-events: none; }
+.stickpad .lab.up { top: 6px; } .stickpad .lab.dn { bottom: 6px; }
+.thrpad { position: absolute; right: 14px; bottom: 12px; width: 62px; height: clamp(130px, 46vmin, 230px); border-radius: 12px; background: rgba(8,14,20,.45); border: 2px solid rgba(255,255,255,.45); overflow: hidden; touch-action: none; }
+.thrfill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: rgba(226,86,14,.85); }
+.thrpad span { position: absolute; left: 0; right: 0; top: 6px; text-align: center; font: 600 13px var(--f-mono); color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; }
+.turnme { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; background: rgba(8,14,20,.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 14px; display: none; pointer-events: none; }
+html.touch .controls, html.touch #keyhelp, html.touch #pathchart, html.touch .keyonly { display: none !important; }
+html.touch .sky #view { height: calc(100svh - 2px); max-height: 640px; min-height: 260px; }
+html.touch .hud { left: 6px; top: 6px; max-width: calc(100% - 156px); grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 3px; }
+@media (max-width: 400px), (max-height: 400px) {
+  html.touch .hud { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 2px; }
+  html.touch .hud .g { padding: 2px 4px; min-width: 0; }
+  html.touch .hud .g span { font-size: 9px; }
+  html.touch .hud .g b { font-size: 13px; }
+  html.touch #g-fuel:not(.hot) { display: none; }
+}
+@media (max-width: 400px) {
+  html.touch .hud { max-width: calc(100% - 148px); grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+  html.touch .hud .g b { font-size: 11.5px; }
+  html.touch #g-stunt { grid-column: 1 / -1; }
+}
+@media (max-height: 400px) {
+  html.touch .ttop { left: calc(28px + clamp(120px, 34vmin, 170px)); bottom: 16px; }
+}
+html.touch .g { min-width: 0; padding: 2px 6px; }
+html.touch .g span { font-size: 9px; }
+html.touch .g b { font-size: 12.5px; white-space: normal; }
+html.touch #g-load, html.touch #g-ap, html.touch #g-cfg, html.touch #g-hdg, html.touch .viewbtn { display: none; }
+html.touch .side canvas { width: 150px; }
+html.touch .coach { top: 100px; left: 112px; max-width: 38%; font-size: 12.5px; pointer-events: none; }
+html.touch .tip { font-size: 12.5px; max-width: 60%; }
+html.touch .side { position: absolute; right: 10px; top: 8px; flex-direction: column; padding: 0; background: none; }
+@media (orientation: portrait) {
+  html.touch .turnme { display: block; animation: fadeout 4s forwards; }
+  html.touch .tbtns { grid-template-columns: repeat(4, 58px); right: 14px; bottom: calc(96px + clamp(130px, 46vmin, 230px)); }
+  html.touch .coach { top: 198px; left: 10px; max-width: 60%; }
+}
+@keyframes fadeout { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .coach { position: absolute; left: 10px; top: 168px; margin: 0; padding: 8px 12px; list-style: none; background: rgba(8,14,20,.85); color: #eef4f8; border-left: 3px solid var(--accent); border-radius: 4px; font-size: 13.5px; max-width: min(300px, 45%); }
 .coach li:not(.now) { display: none; }
 .coach small { display: block; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #cfdde8; margin-bottom: 2px; }
@@ -299,6 +351,11 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
         <div id="modepanel" class="group" hidden></div>
       </div>
       <div class="go"><button class="btn" id="fly">Start mission</button><span class="best" id="best"></span><label class="coachopt"><input type="checkbox" id="coachopt"> Show me how to fly (step-by-step checklist)</label></div>
+      <div class="seg ctlseg"><span class="label">Controls</span><div class="opts">
+        <input type="radio" name="ctl" id="ctl-auto" value="auto" checked><label class="o" for="ctl-auto">Automatic</label>
+        <input type="radio" name="ctl" id="ctl-touch" value="touch"><label class="o" for="ctl-touch">Phone / tablet</label>
+        <input type="radio" name="ctl" id="ctl-keys" value="keys"><label class="o" for="ctl-keys">Keyboard</label>
+      </div><span class="hint" id="ctl-hint"></span></div>
     </div>
   </section>
 
@@ -313,10 +370,10 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
         <div class="g" id="g-agl" hidden><span>Above ground</span><b id="h-agl">0</b></div>
         <div class="g"><span>Climb</span><b id="h-vs">0</b></div>
         <div class="g tgt"><span id="l-tgt">To target</span><b id="h-tgt">0</b></div>
-        <div class="g"><span>Heading</span><b id="h-hdg">000°</b></div>
+        <div class="g" id="g-hdg"><span>Heading</span><b id="h-hdg">000°</b></div>
         <div class="g" id="g-load"><span>G-load</span><b id="h-g">1.0</b></div>
         <div class="g" id="g-fuel"><span>Fuel</span><b id="h-fuel">0</b></div>
-        <div class="g"><span>Flaps · Airbrake</span><b id="h-cfg">DOWN · off</b></div>
+        <div class="g" id="g-cfg"><span>Flaps · Airbrake</span><b id="h-cfg">DOWN · off</b></div>
         <div class="g" id="g-ap"><span>Autopilot</span><b id="h-ap">OFF</b></div>
         <div class="g on" id="g-stunt" hidden><span id="l-stunt">Stunts</span><b id="h-stunt">0 loops · 0 rolls</b></div>
       </div>
@@ -328,8 +385,31 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       <div class="alert terr" id="missile" role="alert" hidden>MISSILE · TURN + FLARES (<span data-code="KeyG">G</span>)</div>
       <div class="alert" id="eng" role="alert" hidden>ENGINE FAILURE</div>
       <div class="tip" id="tip" role="status" aria-live="polite"></div>
+      <div class="touchui" id="touchui" hidden>
+        <div class="ttop">
+          <button class="tbtn sm" data-for="b-pause">Pause</button>
+          <button class="tbtn sm" data-for="viewbtn">View</button>
+        </div>
+        <div class="stickpad" id="t-stick" role="application" aria-label="Joystick: drag up for nose up, down for nose down, left and right to turn">
+          <span class="lab up">nose up</span><span class="lab dn">nose down</span><div class="knob" id="t-knob"></div>
+        </div>
+        <button class="tbtn fire" id="t-fire" data-for="b-gun">Fire</button>
+        <div class="tbtns" id="t-btns">
+          <button class="tbtn" data-for="b-msl">Missile</button>
+          <button class="tbtn" data-for="b-flare">Flares</button>
+          <button class="tbtn" data-for="b-tgt">Target</button>
+          <button class="tbtn" id="t-flaps">Flaps 1</button>
+          <button class="tbtn" data-for="b-brake">Brake</button>
+          <button class="tbtn" data-for="b-ap4">Land prep</button>
+          <button class="tbtn" data-for="b-rev">Reverse</button>
+          <button class="tbtn" data-for="b-ab">Afterburn</button>
+          <button class="tbtn" data-for="b-bail">Bail out</button>
+        </div>
+        <div class="thrpad" id="t-thr" role="slider" aria-label="Throttle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="thrfill" id="t-thrfill"></div><span id="t-thrtxt">0%</span></div>
+        <p class="turnme" id="t-turn">Turn your phone sideways for a bigger view.</p>
+      </div>
       <ol class="coach" id="coach" aria-label="First flight checklist" hidden></ol>
-      <div class="result" id="pause" hidden><div class="card"><span class="label">Paused</span><h3>Paused</h3><p>Take a breather. Press <kbd data-code="KeyP">P</kbd> or <kbd>Esc</kbd> to carry on.</p><div class="go"><button class="btn" id="resume">Resume</button></div></div></div>
+      <div class="result" id="pause" hidden><div class="card"><span class="label">Paused</span><h3>Paused</h3><p class="keyonly">Take a breather. Press <kbd data-code="KeyP">P</kbd> or <kbd>Esc</kbd> to carry on.</p><div class="go"><button class="btn" id="resume">Resume</button><button class="btn ghost" id="p-restart">Restart</button><button class="btn ghost" id="p-hangar">Hangar</button><button class="btn ghost touchonly" id="t-full">Full screen</button><button class="btn ghost touchonly" id="t-sound">Sound on</button></div></div></div>
       <div class="result" id="result" role="dialog" aria-modal="true" aria-labelledby="r-title" hidden>
         <div class="card">
           <span class="label" id="r-label">Flight report</span>
@@ -1080,7 +1160,7 @@ function drawSlots() {
   }
 }
 let settings = loadJSON('wingwright-settings') || {};
-function saveSettings() { saveJSON('wingwright-settings', { viewMode, mapWide, gameMode, mode: pick ? pick.mode : mode, realKey: pick ? pick.realKey : realKey, coach: $('coachopt').checked, sound: typeof sound !== 'undefined' ? sound.on : settings.sound }); }
+function saveSettings() { saveJSON('wingwright-settings', { viewMode, mapWide, gameMode, mode: pick ? pick.mode : mode, realKey: pick ? pick.realKey : realKey, coach: $('coachopt').checked, controls: (document.querySelector('input[name=ctl]:checked') || {}).value, sound: typeof sound !== 'undefined' ? sound.on : settings.sound }); }
 
 function load(p) {
   plane = { ...p };
@@ -1405,7 +1485,7 @@ function startFlight(newMission) {
   coach = $('coachopt').checked && ['mission', 'challenge', 'free'].includes(world.mode) && !spec.aero && !flight.flew ? { done: COACH.map(() => false) } : null;
   $('coach').hidden = !coach; if (coach) drawCoach();
   wake();
-  $('flight').scrollIntoView({ block: 'start' });
+  (TOUCH ? $('sky') : $('flight')).scrollIntoView({ block: 'start' }); shownTouch.clear(); touchAxis.x = touchAxis.y = 0;
 }
 function setThrottle(v) { v = Math.max(0, Math.min(100, v)); $('thr').value = v; $('o-thr').textContent = v + '%'; if (flight) flight.throttle = v / 100; }
 $('thr').addEventListener('input', e => pilotThrottle(+e.target.value));
@@ -1538,7 +1618,7 @@ function loop(now) {
       const still = flight.result || paused;
       if (still && drewStill) { cancelAnimationFrame(raf); return; }   // nothing moves behind the results card or the pause: stop drawing
       if (!G0) G0 = guide(flight, spec);
-      render(); hud(); drawMini(); drawChart(); drawHeightMap();
+      render(); hud(); drawMini(); drawChart(); drawHeightMap(); syncTouch();
       if (still) sound.quiet(); else sound.update(flight, spec);
       drewStill = !!still;
     }
@@ -1547,6 +1627,85 @@ function loop(now) {
 function wake() { drewStill = false; cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop); }
 let glitchShown = false;
 function showGlitch(err) { if (glitchShown) return; glitchShown = true; note('Something went wrong in the game (' + (err && err.message || err) + '). It will keep running; press R twice to restart if it looks stuck.', 10); }
+
+// ---------- phone and tablet controls ----------
+// A joystick for the left thumb (pitch and roll, as far as you push), a throttle lever for the right thumb
+// and big buttons. Computers keep the keyboard and the button row. "Automatic" picks by the kind of screen.
+let TOUCH = false;
+const touchAxis = { x: 0, y: 0, on: false };
+function useTouch() {
+  const pick = (document.querySelector('input[name=ctl]:checked') || {}).value || 'auto';
+  TOUCH = pick === 'touch' || (pick === 'auto' && matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches);
+  document.documentElement.classList.toggle('touch', TOUCH);
+  $('touchui').hidden = !TOUCH;
+  $('ctl-hint').textContent = pick !== 'auto' ? '' : TOUCH ? 'This looks like a phone or tablet: you get the touch joystick and throttle.' : 'This looks like a computer: you fly with the keyboard (or the buttons under the view).';
+  if (flight) sizeAll();
+}
+document.querySelectorAll('input[name=ctl]').forEach(i => i.addEventListener('change', () => { useTouch(); saveSettings(); }));
+// the tips name keyboard keys; on a touch screen say which control to use instead
+function touchText(s) {
+  return s.replace(/press E a few times, or drag Throttle to 100%/g, 'push the throttle lever (bottom right) all the way up')
+    .replace(/Push the throttle up \(E\)/g, 'Push the throttle lever up')
+    .replace(/hold ↑ or W \(Nose up\)/g, 'push the joystick up (nose up)').replace(/using ← → \(A D\)/g, 'with the joystick')
+    .replace(/[Pp]ress 2 \(Flat flaps\)/g, 'tap Flaps until it says 2').replace(/[Pp]ress 2/g, 'tap Flaps until it says 2')
+    .replace(/[Pp]ress 4 for Landing prep/g, 'tap Land prep').replace(/\(Bomb run autopilot: 4\)/g, '(Land prep button: bomb run autopilot)')
+    .replace(/hold Space/g, 'hold Fire').replace(/[Pp]ress Space/g, 'tap Fire').replace(/press G for flares/g, 'tap Flares').replace(/press F to fire a missile/g, 'tap Missile')
+    .replace(/\(T picks another target\)/g, '(Target picks another)').replace(/[Pp]ress J/g, 'tap Bail out').replace(/brake with B/g, 'tap Brake')
+    .replace(/ \((?:[A-Z]|[A-Z] or [←→]|[DA] or [→←]|Space|Esc|\d)\)/g, '');
+}
+(() => {
+  const pad = $('t-stick'), knob = $('t-knob');
+  let id = null;
+  const move = e => {
+    const r = pad.getBoundingClientRect(), R0 = r.width / 2;
+    let x = (e.clientX - r.left - R0) / (R0 * 0.8), y = (e.clientY - r.top - R0) / (R0 * 0.8);
+    const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
+    const dz = v => Math.abs(v) < 0.1 ? 0 : (v - Math.sign(v) * 0.1) / 0.9;   // small dead zone so the plane flies straight when you rest your thumb
+    touchAxis.x = dz(x); touchAxis.y = dz(-y); touchAxis.on = true;
+    knob.style.transform = `translate(calc(-50% + ${x * R0 * 0.8}px), calc(-50% + ${y * R0 * 0.8}px))`;
+  };
+  const end = e => { if (e.pointerId !== id) return; id = null; touchAxis.x = touchAxis.y = 0; touchAxis.on = false; knob.style.transform = ''; };
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); id = e.pointerId; try { pad.setPointerCapture(id); } catch (x) {} move(e); sound.start(); });
+  pad.addEventListener('pointermove', e => { if (e.pointerId === id) move(e); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, end);
+  // throttle lever: where you touch is the power you get
+  const thr = $('t-thr'); let tid = null;
+  const setThr = e => { const r = thr.getBoundingClientRect(); pilotThrottle(Math.round(Math.max(0, Math.min(1, (r.bottom - e.clientY) / r.height)) * 20) * 5); };
+  thr.addEventListener('pointerdown', e => { e.preventDefault(); tid = e.pointerId; try { thr.setPointerCapture(tid); } catch (x) {} setThr(e); });
+  thr.addEventListener('pointermove', e => { if (e.pointerId === tid) setThr(e); });
+  for (const ev of ['pointerup', 'pointercancel']) thr.addEventListener(ev, e => { if (e.pointerId === tid) tid = null; });
+  // buttons that stand in for the desktop ones; Fire is held down
+  document.querySelectorAll('#touchui .tbtn[data-for]').forEach(b => {
+    if (b.id === 't-fire') {
+      const on = e => { e.preventDefault(); keys.gun = 1; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (x) {} };
+      const off = () => { keys.gun = 0; b.classList.remove('on'); };
+      b.addEventListener('pointerdown', on); for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, off);
+    } else b.addEventListener('click', () => $(b.dataset.for).click());
+  });
+  $('t-flaps').addEventListener('click', () => { if (flight) setFlaps(flight.flapSet % 3 + 1); });
+  $('t-full').hidden = !document.documentElement.requestFullscreen;
+  $('mini').addEventListener('click', () => { if (TOUCH) toggleMap(); });
+  $('t-sound').addEventListener('click', () => { sound.toggle(); $('t-sound').textContent = sound.on ? 'Sound on' : 'Sound off'; });   // on phones, tap the map to zoom it
+  $('t-full').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else $('flight').requestFullscreen().catch(() => {}); });
+})();
+// once a frame: the touch buttons copy what the desktop buttons show (hidden, pressed, labels), and the throttle lever
+const shownTouch = new Map();
+function syncTouch() {
+  if (!TOUCH || !flight) return;
+  document.querySelectorAll('#touchui .tbtn[data-for]').forEach(b => {
+    const d = $(b.dataset.for), hide = !d || !!d.closest('[hidden]'), pressed = d && d.getAttribute('aria-pressed');
+    const key = (hide ? 'h' : 's') + pressed + (d && d.textContent);
+    if (shownTouch.get(b) === key) return; shownTouch.set(b, key);
+    b.hidden = hide; if (pressed) b.setAttribute('aria-pressed', pressed);
+    if (b.dataset.for === 'b-gun') b.textContent = fight && fight.B ? 'Drop bombs' : 'Fire';
+    if (b.dataset.for === 'b-ap4') b.textContent = fight && fight.B ? 'Bomb run' : 'Land prep';
+    if (b.dataset.for === 'b-sound') b.textContent = sound.on ? 'Sound on' : 'Sound off';
+  });
+  const fl = 'Flaps ' + flight.flapSet; if ($('t-flaps').textContent !== fl) $('t-flaps').textContent = fl;
+  const th = Math.round(flight.throttle * 100) + '%';
+  if ($('t-thrtxt').textContent !== th) { $('t-thrtxt').textContent = th; $('t-thrfill').style.height = th; $('t-thr').setAttribute('aria-valuenow', parseInt(th)); }
+  const tip = $('tip'), s = tip.textContent, r = touchText(s); if (r !== s) tip.textContent = r;
+}
 
 // ---------- first-flight checklist: one control at a time, ticked off as you do it ----------
 const COACH = [
@@ -1560,7 +1719,7 @@ const COACH = [
 let coach = null;
 function drawCoach() {
   const now = coach.done.indexOf(false), ol = $('coach'); ol.textContent = '';
-  COACH.forEach((c, i) => { const li = document.createElement('li'), sm = document.createElement('small'); sm.textContent = `First flight · step ${i + 1} of ${COACH.length}`; li.append(sm, c.text); li.className = coach.done[i] ? 'done' : i === now ? 'now' : ''; ol.append(li); });
+  COACH.forEach((c, i) => { const li = document.createElement('li'), sm = document.createElement('small'); sm.textContent = `First flight · step ${i + 1} of ${COACH.length}`; li.append(sm, TOUCH ? touchText(c.text) : c.text); li.className = coach.done[i] ? 'done' : i === now ? 'now' : ''; ol.append(li); });
   if (now < 0) ol.hidden = true;
 }
 function updateCoach() {
@@ -1571,12 +1730,12 @@ function updateCoach() {
 
 // one physics step: controls, autopilots, the plane, and everything else that moves
 function tick(dt) {
-    let pitch = keys.up - keys.down, roll = keys.right - keys.left;
+    let pitch = Math.max(-1, Math.min(1, keys.up - keys.down + touchAxis.y)), roll = Math.max(-1, Math.min(1, keys.right - keys.left + touchAxis.x));
     G0 = guide(flight, spec);
     // automatic cruise on flaps 2
     if (!flight.pilotFlap && !flight.autoDone && canAuto() && flight.h > 100) { flight.autoDone = true; setFlaps(2, false); }
     if ((flight.ap || flight.at) && !canAuto()) { flight.ap = flight.at = false; note(G0.phase === 'approach' ? 'Descent point: autopilot off. You have control for the landing.' : 'Autopilot off: you have control.', 6); }
-    if (flight.ap && (pitch || roll)) { flight.ap = false; note('You have the steering. Press 2 to turn the autopilot back on.'); }
+    if (flight.ap && (Math.abs(pitch) > 0.05 || Math.abs(roll) > 0.05)) { flight.ap = false; note('You have the steering. Press 2 to turn the autopilot back on.'); }
     if (fight && fight.B && fight.bombAP) {
       if (pitch || roll) { fight.bombAP = false; note('Bomb run autopilot off: you have control.'); syncToggles(); }
       else { const r = bombAPInput(); pitch = r[0]; roll = r[1]; }
@@ -3242,7 +3401,7 @@ function askRestart() {
 function setPause(on) {
   if (!flight || flight.result || on === paused) return;
   paused = on; $('pause').hidden = !on; for (const k in keys) keys[k] = 0;
-  if (on) $('resume').focus(); else wake();
+  if (on) { $('resume').focus(); $('t-sound').textContent = sound.on ? 'Sound on' : 'Sound off'; } else wake();
   sound.pause(on);
 }
 const togglePause = () => setPause(!paused);
@@ -3276,7 +3435,7 @@ window.addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]]
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = 0; });
 document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
 function toggleMap() { mapWide = !mapWide; saveSettings(); }
-$('b-map').addEventListener('click', toggleMap); $('b-pause').addEventListener('click', togglePause); $('b-restart').addEventListener('click', askRestart); $('resume').addEventListener('click', () => setPause(false)); $('b-sound').addEventListener('click', () => sound.toggle()); syncSoundBtn();
+$('b-map').addEventListener('click', toggleMap); $('b-pause').addEventListener('click', togglePause); $('b-restart').addEventListener('click', askRestart); $('resume').addEventListener('click', () => setPause(false)); $('p-restart').addEventListener('click', () => startFlight(false)); $('p-hangar').addEventListener('click', backToHangar); $('b-sound').addEventListener('click', () => sound.toggle()); syncSoundBtn();
 bindHold('b-gun', 'gun'); $('b-msl').addEventListener('click', fireMissile); $('b-flare').addEventListener('click', dropFlares); $('b-tgt').addEventListener('click', nextTarget); $('b-bail').addEventListener('click', bailOut);
 
 function buildFleet() {
@@ -3315,6 +3474,8 @@ setGameMode('mission');
   if (MODEHINT[settings.gameMode] && !$('gm-' + settings.gameMode).disabled) { $('gm-' + settings.gameMode).checked = true; setGameMode(settings.gameMode); }
 }
 $('coachopt').addEventListener('change', saveSettings);
+if (['auto', 'touch', 'keys'].includes(settings.controls)) $('ctl-' + settings.controls).checked = true;
+useTouch(); matchMedia('(pointer: coarse)').addEventListener('change', useTouch);
 // keys work by position (e.code), so on AZERTY and other layouts show the letter that is really on that key
 if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(map => {
   document.querySelectorAll('[data-code]').forEach(el => { const l = map.get(el.dataset.code); if (l) el.textContent = l.toUpperCase(); });
