@@ -208,6 +208,13 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
 .tab { font: 800 17px var(--f-display); text-transform: uppercase; letter-spacing: .05em; padding: 9px 6px; border: 0; background: var(--panel); color: var(--ink); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
 .fleet { display: flex; flex-direction: column; gap: 6px; }
+.seg .opts.gmopts { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 600px) { .flight.walking .tip { top: 126px; } }
+/* Guard mode boarding: the view becomes a deck plan; only the walking controls stay */
+.flight.walking #keyhelp, .flight.walking .hud, .flight.walking .viewbtn, .flight.walking .side, .flight.walking .alert, .flight.walking #coach, .flight.walking #hmap { display: none !important; }
+.flight.walking .controls > :not(#walkbtns):not(.sysbtns):not(#back) { display: none !important; }
+html.touch .flight.walking #t-btns .tbtn:not(.wk), html.touch .flight.walking #t-thr, html.touch .flight.walking #t-fire, html.touch .flight.walking [data-for=viewbtn], .flight.walking .stickpad .lab { display: none !important; }
+html.touch .flight.walking .tbtns { bottom: 12px !important; right: 14px !important; grid-template-columns: repeat(2, 86px) !important; }
 .inside { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .inside h3 { font-size: 15px; margin: 0 0 2px; } .inside .sum { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
 .deckrow { margin-bottom: 8px; } .deckrow .dn { font-size: 12px; color: var(--muted); }
@@ -345,13 +352,14 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       <dl class="sheet" id="sheet"></dl>
       <div class="group"><h2>Pre-flight check</h2><ul class="verdicts" id="verdicts"></ul></div>
       <div class="group"><h2>Game mode</h2>
-        <div class="seg"><div class="opts">
+        <div class="seg"><div class="opts gmopts">
           <input type="radio" name="gmode" id="gm-mission" value="mission" checked><label class="o" for="gm-mission">Mission</label>
           <input type="radio" name="gmode" id="gm-challenge" value="challenge"><label class="o" for="gm-challenge">Challenge</label>
           <input type="radio" name="gmode" id="gm-free" value="free"><label class="o" for="gm-free">Free fly</label>
           <input type="radio" name="gmode" id="gm-situation" value="situation"><label class="o" for="gm-situation">Situation</label>
           <input type="radio" name="gmode" id="gm-fight" value="fight"><label class="o" for="gm-fight">Fight</label>
           <input type="radio" name="gmode" id="gm-stunt" value="stunt"><label class="o" for="gm-stunt">Stunt team</label>
+          <input type="radio" name="gmode" id="gm-guard" value="guard"><label class="o" for="gm-guard">Guard</label>
         </div><span class="hint" id="gm-hint"></span></div>
         <div id="modepanel" class="group" hidden></div>
       </div>
@@ -409,6 +417,11 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
           <button class="tbtn" data-for="b-rev">Reverse</button>
           <button class="tbtn" data-for="b-ab">Afterburn</button>
           <button class="tbtn" data-for="b-bail">Bail out</button>
+          <button class="tbtn" data-for="b-skip">Skip cruise</button>
+          <button class="tbtn wk" data-for="w-check">Check in</button>
+          <button class="tbtn wk" data-for="w-up">Stairs up</button>
+          <button class="tbtn wk" data-for="w-down">Stairs down</button>
+          <button class="tbtn wk" data-for="w-skip">Skip boarding</button>
         </div>
         <div class="thrpad" id="t-thr" role="slider" aria-label="Throttle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="thrfill" id="t-thrfill"></div><span id="t-thrtxt">0%</span></div>
         <p class="turnme" id="t-turn">Turn your phone sideways for a bigger view.</p>
@@ -441,10 +454,12 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
         <button class="hold tog" id="b-ab" aria-pressed="false" hidden>Afterburner (<span data-code="KeyX">X</span>)</button>
         <button class="hold tog" id="b-ap4" aria-pressed="false">Landing prep (4)</button>
         <button class="hold" id="b-bail" hidden>Bail out (<span data-code="KeyJ">J</span>)</button>
+        <button class="hold" id="b-skip" hidden>Skip to descent (<span data-code="KeyK">K</span>)</button>
         <span id="fightbtns" class="stick" hidden><button class="hold" id="b-gun">Gun (Space)</button><button class="hold" id="b-msl">Missile (<span data-code="KeyF">F</span>)</button><button class="hold" id="b-flare">Flares (<span data-code="KeyG">G</span>)</button><button class="hold" id="b-tgt">Target (<span data-code="KeyT">T</span>)</button></span>
       </div>
+      <span id="walkbtns" class="stick" hidden><button class="hold" id="w-check">Check in (Space)</button><button class="hold" id="w-up">Stairs up (<span data-code="KeyE">E</span>)</button><button class="hold" id="w-down">Stairs down (<span data-code="KeyQ">Q</span>)</button><button class="hold" id="w-skip">Skip boarding</button></span>
       <label class="throttle" for="thr"><span class="label">Throttle</span><input type="range" id="thr" min="0" max="100" step="5" value="0"><output id="o-thr">0%</output></label>
-      <span class="stick"><button class="hold" id="b-map">Map zoom (<span data-code="KeyM">M</span>)</button><button class="hold" id="b-pause">Pause (<span data-code="KeyP">P</span>)</button><button class="hold" id="b-restart">Restart (<span data-code="KeyR">R</span>)</button><button class="hold tog" id="b-sound" aria-pressed="true">Sound on (<span data-code="KeyN">N</span>)</button></span>
+      <span class="stick sysbtns"><button class="hold" id="b-map">Map zoom (<span data-code="KeyM">M</span>)</button><button class="hold" id="b-pause">Pause (<span data-code="KeyP">P</span>)</button><button class="hold" id="b-restart">Restart (<span data-code="KeyR">R</span>)</button><button class="hold tog" id="b-sound" aria-pressed="true">Sound on (<span data-code="KeyN">N</span>)</button></span>
       <button class="btn ghost" id="back">Back to hangar</button>
     </div>
     <div class="keys" id="keyhelp">
@@ -746,19 +761,19 @@ new MutationObserver(() => { if (!$('hangar').hidden) drawPlan(); }).observe(doc
 
 let stats = { wins: 0 };
 try { stats = JSON.parse(localStorage.getItem('wingwright-stats') || 'null') || stats; } catch (e) {}
-function showBest() { const g = typeof gameMode === 'undefined' ? 'mission' : gameMode; if (g === 'situation') { $('best').textContent = `Classics done: ${Object.keys(stats.sits || {}).length} of 5 · random ones handled: ${stats.newSits || 0}`; return; } if (g === 'fight') { const n = stats[`w_${fightKind}_${fightSize}`] || 0; $('best').textContent = stats.fightWins ? `Won at this size: ${n} · all battles: ${stats.fightWins}` : 'Win a battle to start your record.'; return; } if (g === 'stunt') { $('best').textContent = stats.stuntBest ? `Best display score: ${stats.stuntBest}` : 'Fly the full routine to set a score.'; return; } $('best').textContent = g === 'challenge' ? (stats.peaks ? `Mountain landings: ${stats.peaks}` : 'Land on the mountain runway to beat the challenge.') : g === 'free' ? (stats.free ? `Free-fly landings so far: ${stats.free}` : 'Land anywhere you like.') : (stats.wins ? `Missions completed: ${stats.wins}` : 'Land on the target runway to complete a mission.'); }
+function showBest() { const g = typeof gameMode === 'undefined' ? 'mission' : gameMode; if (g === 'guard') { $('best').textContent = stats.guard ? `Presidents delivered: ${stats.guard}` + (stats.boardBest ? ` · fastest boarding ${mmss(stats.boardBest)}` : '') : 'Deliver the President safely to start your record.'; return; } if (g === 'situation') { $('best').textContent = `Classics done: ${Object.keys(stats.sits || {}).length} of 5 · random ones handled: ${stats.newSits || 0}`; return; } if (g === 'fight') { const n = stats[`w_${fightKind}_${fightSize}`] || 0; $('best').textContent = stats.fightWins ? `Won at this size: ${n} · all battles: ${stats.fightWins}` : 'Win a battle to start your record.'; return; } if (g === 'stunt') { $('best').textContent = stats.stuntBest ? `Best display score: ${stats.stuntBest}` : 'Fly the full routine to set a score.'; return; } $('best').textContent = g === 'challenge' ? (stats.peaks ? `Mountain landings: ${stats.peaks}` : 'Land on the mountain runway to beat the challenge.') : g === 'free' ? (stats.free ? `Free-fly landings so far: ${stats.free}` : 'Land anywhere you like.') : (stats.wins ? `Missions completed: ${stats.wins}` : 'Land on the target runway to complete a mission.'); }
 showBest();
 
 // ===== Flight =====
 var gameMode = 'mission', landSeen = 0, pickT = 0;
-const MODEHINT = { situation: 'Five real-life situations, each with its own map and plane. Pick one below.', fight: 'Three kinds of battle: modern jets (F-35 or F-22), a bomber run (B-17, B-29, SBD Dauntless, B-52, the giant made-up B-121, B-1B or B-2) or a WW2 dogfight for Britain, the USA, the Soviet Union, Germany or Japan.', stunt: 'Fly the Extra 330SC in a four-plane display team and perform a scored routine of solo and group stunts.', mission: 'Find the real target runway among closed decoy strips and land on it.', challenge: 'The target is high in the mountains. Climb over the foothills, turn into the valley and land on the plateau. Touching a mountainside is a crash.', free: 'No target and no failing. Open airfields all around: land on any runway or field, take off again and explore.' };
-const MODEBTN = { mission: 'Start mission', challenge: 'Start challenge', free: 'Start free flight', situation: 'Start situation', fight: 'Start fight', stunt: 'Start display' };
-const SPECIAL = ['situation', 'fight', 'stunt'];   // modes that bring their own plane
+const MODEHINT = { guard: 'You are the pilot of Air Force One (the made-up B-121B Sky Palace). Board from the tail ramp, walk through the plane past every security checkpoint up to the flight deck, then fly the President between real airports across the ocean.', situation: 'Five real-life situations, each with its own map and plane. Pick one below.', fight: 'Three kinds of battle: modern jets (F-35 or F-22), a bomber run (B-17, B-29, SBD Dauntless, B-52, the giant made-up B-121, B-1B or B-2) or a WW2 dogfight for Britain, the USA, the Soviet Union, Germany or Japan.', stunt: 'Fly the Extra 330SC in a four-plane display team and perform a scored routine of solo and group stunts.', mission: 'Find the real target runway among closed decoy strips and land on it.', challenge: 'The target is high in the mountains. Climb over the foothills, turn into the valley and land on the plateau. Touching a mountainside is a crash.', free: 'No target and no failing. Open airfields all around: land on any runway or field, take off again and explore.' };
+const MODEBTN = { mission: 'Start mission', challenge: 'Start challenge', free: 'Start free flight', situation: 'Start situation', fight: 'Start fight', stunt: 'Start display', guard: 'Start guard duty' };
+const SPECIAL = ['situation', 'fight', 'stunt', 'guard'];   // modes that bring their own plane
 function restorePick(p) {
   if (p.mode === 'custom') { mode = 'custom'; load(p.design); setMode('custom'); }
   else { realKey = p.realKey; setMode('real'); markFleet(); }
 }
-const MODEKEYS = { fight: 'Keys: Space gun or bombs · F missile · T next target · G flares · 4 bomb run autopilot.', stunt: 'Keys: hold Nose up to loop, Left or Right to roll.', situation: 'Over the sea: J bails out.' };
+const MODEKEYS = { guard: 'Boarding: arrow keys walk, Space checks in, E and Q take the stairs up and down. Flying: K skips the long cruise.', fight: 'Keys: Space gun or bombs · F missile · T next target · G flares · 4 bomb run autopilot.', stunt: 'Keys: hold Nose up to loop, Left or Right to roll.', situation: 'Over the sea: J bails out.' };
 function setGameMode(m) {
   const was = gameMode; gameMode = m;
   if (SPECIAL.includes(m) && !SPECIAL.includes(was) && !pick) pick = { mode, realKey, design: { ...lastCustom } };
@@ -803,9 +818,10 @@ function startFlight(newMission) {
       else rolled = { classic: sitId };
     }
     usePlane(rolled.classic ? SITS[rolled.classic].plane : rolled.plane);
-  } else if (gameMode === 'fight') usePlane(fightPlane()); else if (gameMode === 'stunt') usePlane('extra');
+  } else if (gameMode === 'fight') usePlane(fightPlane()); else if (gameMode === 'stunt') usePlane('extra'); else if (gameMode === 'guard') usePlane('b121b');
   others = []; fight = null; team = null;
-  if (gameMode === 'situation') world = rolled.classic ? makeSituationWorld(spec, rolled.classic, worldSeed) : makeRandomSituation(spec, rolled.type, rolled.map, worldSeed);
+  if (gameMode === 'guard') world = makeGuardWorld(spec, guardRoute, worldSeed);
+  else if (gameMode === 'situation') world = rolled.classic ? makeSituationWorld(spec, rolled.classic, worldSeed) : makeRandomSituation(spec, rolled.type, rolled.map, worldSeed);
   else { world = gameMode === 'fight' && fightKind === 'bomber' ? bomberWorld() : makeWorld(spec, worldSeed, ['fight', 'stunt'].includes(gameMode) ? 'free' : gameMode); if (gameMode === 'fight') world.ceilAdd = Math.max(0, 8000 - spec.ceiling); if (gameMode === 'fight' || gameMode === 'stunt') { world.mode = gameMode; world.free = false; world.target = world.home; } }
   const tg = world.target;
   $('hangar').hidden = true; $('flight').hidden = false; $('result').hidden = true;
@@ -826,6 +842,10 @@ function startFlight(newMission) {
     else if (fightKind === 'ww2') { $('m-title').textContent = `WW2 dogfight: ${fightSize} v ${fightSize}`; $('m-sub').textContent = `${who} for ${WW2[ww2Key].name} · guns only: get within 800 m and hold Space · T next target · red boxes are enemies, blue diamonds are your team`; }
     else { $('m-title').textContent = `Fight: ${fightSize} v ${fightSize}`;
     $('m-sub').textContent = `${who} · Space gun · F missile (lock first) · T next target · G flares · red boxes are enemies, blue diamonds are your team`; }
+  } else if (world.mode === 'guard') {
+    const Rt = world.route;
+    $('m-title').textContent = `Guard duty: ${Rt.title}`;
+    $('m-sub').textContent = `${who} as Air Force One · ${world.from.name} to ${world.to.name} · ${Math.round(world.dist / 1000).toLocaleString()} km across ${Rt.sea} · board from the tail first`;
   } else if (world.mode === 'stunt') {
     $('m-title').textContent = 'Stunt team display';
     $('m-sub').textContent = `${who} · you fly on the leader’s left wing · ${STUNTS.filter(s => s.type !== 'rejoin').length} stunts to fly`;
@@ -850,7 +870,7 @@ function startFlight(newMission) {
   $('b-bail').hidden = world.situation !== 'ocean'; $('fightbtns').hidden = world.mode !== 'fight'; $('missile').hidden = true; $('eng').hidden = true; $('eng').textContent = 'ENGINE FAILURE'; $('g-stunt').classList.remove('hot');
   $('pathchart').hidden = world.mode === 'fight' || world.mode === 'stunt';
   const sx = world.sitType, showX = sx === 'wind' || sx === 'medical' || sx === 'fuel';
-  $('g-stunt').hidden = !(spec.aero || world.mode === 'fight' || world.mode === 'stunt' || showX); $('l-stunt').textContent = world.mode === 'fight' ? 'Battle' : world.mode === 'stunt' ? 'Display' : sx === 'wind' ? 'Wind' : sx === 'medical' ? 'Time left' : sx === 'fuel' ? 'Fuel leak' : 'Stunts';
+  $('g-stunt').hidden = !(spec.aero || world.mode === 'fight' || world.mode === 'stunt' || world.mode === 'guard' || showX); $('l-stunt').textContent = world.mode === 'guard' ? 'Trip left' : world.mode === 'fight' ? 'Battle' : world.mode === 'stunt' ? 'Display' : sx === 'wind' ? 'Wind' : sx === 'medical' ? 'Time left' : sx === 'fuel' ? 'Fuel leak' : 'Stunts';
   if ((world.mode === 'fight' || world.mode === 'stunt') && viewMode === 'cockpit' && world.mode === 'stunt') toggleView();
   G0 = guide(flight, spec); D0 = G0.dtg; trail = []; trailT = 0; trailMax = 0;
   $('tip').hidden = false; $('tip').textContent = flight.flew ? (world.situation === 'carrier' ? 'Carrier landing: fly the green line straight into the deck. No flare. The wire will stop you.' : world.situation === 'storm' ? 'Storm! Expect big bumps. Follow the green line and keep your speed up.' : world.situation === 'himalaya' ? 'Follow the green route up the valley. Do not fly over the peaks: watch the terrain warning.' : world.situation === 'ocean' ? 'Cruising over the ocean...' : '') : `Push the throttle up (E). At ${kmh(spec.vLift)} km/h, hold Nose up to lift off.`;
@@ -859,6 +879,8 @@ function startFlight(newMission) {
   // controls help: only the parts that matter for this flight
   const helpFor = { all: true, land: !['fight', 'stunt'].includes(world.mode), fast: !!spec.abMult, stunt: spec.aero || world.mode === 'stunt', fight: world.mode === 'fight', ocean: world.situation === 'ocean' };
   document.querySelectorAll('#keyhelp details').forEach(d => { d.hidden = !helpFor[d.dataset.for]; });
+  $('b-skip').hidden = world.mode !== 'guard';
+  walk = world.mode === 'guard' ? newWalk() : null; $('flight').classList.toggle('walking', !!walk); syncWalkButtons(); if (walk) sound.quiet();
   coach = $('coachopt').checked && ['mission', 'challenge', 'free'].includes(world.mode) && !spec.aero && !flight.flew ? { done: COACH.map(() => false) } : null;
   $('coach').hidden = !coach; if (coach) drawCoach();
   wake();
@@ -985,6 +1007,7 @@ function loop(now) {
   raf = requestAnimationFrame(loop);   // schedule the next frame first, so an error can't freeze the game
   const frame = Math.max(0, Math.min(0.25, (now - last) / 1000)); last = now; lastDt = frame;
   try {
+    if (walk && flight) { if (!paused) walkTick(frame); if (walk) { drawWalk(); syncTouch(); return; } }
     if (flight && !flight.result && !paused) {
       simAcc += frame; let n = 0;
       while (simAcc >= STEP && !flight.result) { simAcc -= STEP; tick(STEP); if (++n >= 40) { simAcc = 0; break; } }   // never try to catch up more than 1/3 s
@@ -1027,6 +1050,7 @@ function touchText(s) {
     .replace(/[Pp]ress 2 \(Flat flaps\)/g, 'tap Flaps until it says 2').replace(/[Pp]ress 2/g, 'tap Flaps until it says 2')
     .replace(/[Pp]ress 4 for Landing prep/g, 'tap Land prep').replace(/\(Bomb run autopilot: 4\)/g, '(Land prep button: bomb run autopilot)')
     .replace(/hold Space/g, 'hold Fire').replace(/[Pp]ress Space/g, 'tap Fire').replace(/press G for flares/g, 'tap Flares').replace(/press F to fire a missile/g, 'tap Missile')
+    .replace(/Press K \(Skip to descent\)/g, 'Tap Skip cruise').replace(/press 4 for Landing prep/g, 'tap Land prep').replace(/Throttle up \(E\)/g, 'Push the throttle lever up')
     .replace(/\(T picks another target\)/g, '(Target picks another)').replace(/[Pp]ress J/g, 'tap Bail out').replace(/brake with B/g, 'tap Brake')
     .replace(/ \((?:[A-Z]|[A-Z] or [←→]|[DA] or [→←]|Space|Esc|\d)\)/g, '');
 }
@@ -1084,6 +1108,170 @@ function syncTouch() {
   const tip = $('tip'), s = tip.textContent, r = touchText(s); if (r !== s) tip.textContent = r;
 }
 
+// ---------- Guard mode, part 1: boarding. Walk the B-121B from the tail ramp to the flight deck ----------
+// Seen from above, nose on the left. x = metres back from the nose, y = metres across (negative = left side of the screen).
+// The deck plans come from REAL.b121b.interior; walls stand at every room edge, with a door in the middle (the aisle).
+const GUARD_CHECKS = [
+  { d: 2, room: 'Rear cargo ramp', who: 'Ramp guard', ask: 'Show your pass to the ramp guard.', ok: 'Pass checked. Welcome aboard, Captain.' },
+  { d: 2, room: 'Car garage', who: 'Loadmaster', ask: 'Check the President’s cars are chained down.', ok: 'All the cars are chained down tight.' },
+  { d: 2, room: 'Communications centre', who: 'Radio officer', ask: 'Do a radio check with the radio officer.', ok: 'Radios loud and clear. The secure line is up.' },
+  { d: 1, room: 'Medical centre', who: 'Flight doctor', ask: 'Get the flight doctor to sign you fit to fly.', ok: 'Heart rate fine. You are fit to fly.' },
+  { d: 1, room: 'Security team', who: 'Secret Service agent', ask: 'Have your badge scanned by the security team.', ok: 'Badge scanned. Your name is on the list.' },
+  { d: 0, room: 'Situation room', who: 'Mission officer', ask: 'Collect the flight brief in the situation room.', ok: 'Brief received: route, weather and fuel plan.' },
+  { d: 0, room: 'President’s office', who: 'The President', ask: 'Report to the President.', ok: '“Good to have you with us, Captain. Let’s go.”' },
+  { d: 0, room: 'Flight deck', who: 'Co-pilot', ask: 'Take your seat on the flight deck.', ok: 'Seat belt on. Starting the engines.' }
+];
+const WALK_SPEED = 6.5, DOOR = 1.6;
+let walk = null;
+const walkDecks = () => REAL.b121b.interior.decks;
+const roomIn = (d, name) => walkDecks()[d].rooms.find(r => r[0].replace(/'/g, '’') === name);
+function newWalk() {
+  const L = REAL.b121b.length, hw = REAL.b121b.width / 2 - 1, ramp = roomIn(2, 'Rear cargo ramp');
+  const decks = walkDecks().map(dk => {
+    const x0 = Math.min(...dk.rooms.map(r => r[1])) * L, x1 = Math.max(...dk.rooms.map(r => r[2])) * L;
+    const walls = [...new Set(dk.rooms.flatMap(r => [r[1], r[2]]))].map(u => u * L).filter(x => x > x0 + 0.1 && x < x1 - 0.1).sort((a, b) => a - b);
+    return { x0, x1, walls };
+  });
+  const people = GUARD_CHECKS.map((c, i) => { const r = roomIn(c.d, c.room); return { d: c.d, x: (r[1] + r[2]) / 2 * L, y: c.room === 'Flight deck' ? 2.5 : -hw * 0.45, who: c.who, chk: i, boss: c.who === 'The President' }; });
+  // a few more people about the plane, so it doesn't feel empty (always in the same places)
+  walkDecks().forEach((dk, d) => dk.rooms.forEach((r, j) => {
+    if (['stairs', 'lift', 'cockpit', 'tech'].includes(r[3]) || people.some(p => p.d === d && Math.abs(p.x - (r[1] + r[2]) / 2 * L) < 1)) return;
+    const n = r[3] === 'seats' ? 4 : 1 + Math.floor(hash(d, j) * 2);
+    for (let k = 0; k < n; k++) people.push({ d, x: (r[1] + (r[2] - r[1]) * (0.2 + 0.6 * hash(d * 7 + k, j))) * L, y: (hash(j, d * 5 + k) - 0.5) * 2 * (hw - 2.5), who: '' });
+  }));
+  return { d: 2, x: (ramp[1] + ramp[2]) / 2 * L + 4, y: 0, face: Math.PI, cp: 0, t: 0, L, hw, decks, people, msg: '', msgT: 0, flash: 0, done: false };
+}
+function walkSay(text, secs) { walk.msg = text; walk.msgT = walk.t + (secs || 4); }
+function walkTick(dt) {
+  const w = walk; w.t += dt; w.flash = Math.max(0, w.flash - dt);
+  if (w.done) { w.leave -= dt; if (w.leave <= 0) endWalk(); return; }
+  let mx = keys.right - keys.left + touchAxis.x, my = keys.down - keys.up - touchAxis.y;
+  const m = Math.hypot(mx, my); if (m > 1) { mx /= m; my /= m; }
+  if (m > 0.05) w.face = Math.atan2(my, mx);
+  const dk = w.decks[w.d], nx0 = Math.max(dk.x0 + 0.6, Math.min(dk.x1 - 0.6, w.x + mx * WALK_SPEED * dt));
+  let nx = nx0, ny = Math.max(-w.hw, Math.min(w.hw, w.y + my * WALK_SPEED * dt));
+  for (const b of dk.walls) {
+    if ((w.x < b) !== (nx < b) && Math.abs(ny) > DOOR - 0.35) nx = w.x;   // walls: only the door in the middle lets you through
+    if (Math.abs(nx - b) < 0.35 && Math.abs(ny) > DOOR - 0.35) { if (Math.abs(w.y) <= DOOR - 0.35) ny = w.y; else nx = w.x; }
+  }
+  w.x = nx; w.y = ny;
+  // walking up to the right person checks you in on its own; Space works too
+  const c = GUARD_CHECKS[w.cp], p = w.people.find(q => q.chk === w.cp);
+  if (c && p && w.d === p.d && Math.hypot(p.x - w.x, p.y - w.y) < 2.2) walkAction('check');
+}
+function walkHere() { const L = walk.L; return walkDecks()[walk.d].rooms.find(r => walk.x >= r[1] * L && walk.x <= r[2] * L); }
+function walkAction(kind) {
+  const w = walk; if (!w || w.done) return;
+  const c = GUARD_CHECKS[w.cp], here = walkHere();
+  if (kind === 'check') {
+    const near = q => q.d === w.d && q.who && Math.hypot(q.x - w.x, q.y - w.y) < 3.2;
+    const p = w.people.find(q => q.chk === w.cp && near(q)) || w.people.find(near);
+    if (!p) { walkSay(here && (here[3] === 'stairs' || here[3] === 'lift') ? `You are at the ${here[3]}: press E to go up or Q to go down.` : `Nobody to check in with here. ${c.ask}`); return; }
+    if (p.chk !== w.cp) { walkSay(`${p.who}: “Not yet, Captain. ${c.ask}”`); return; }
+    w.cp++; w.flash = 0.6; sound.beep && sound.beep();
+    if (w.cp >= GUARD_CHECKS.length) { w.done = true; w.leave = 1.6; walkSay(c.ok, 3); return; }
+    walkSay(`${c.who}: ${c.ok} Next: ${GUARD_CHECKS[w.cp].ask}`, 5);
+    return;
+  }
+  // stairs and lifts link all three decks at the same place
+  if (!here || (here[3] !== 'stairs' && here[3] !== 'lift')) { walkSay('Find the stairs or the lift (the dark blocks) to change deck.'); return; }
+  const to = w.d + (kind === 'up' ? -1 : 1);
+  if (to < 0 || to > 2) { walkSay(kind === 'up' ? 'This is the top deck.' : 'This is the bottom deck.'); return; }
+  w.d = to; w.flash = 0.35; walkSay(`${walkDecks()[to].name}: ${walkDecks()[to].note.toLowerCase()}.`, 3);
+}
+function walkGoal() {   // where to head next: the checkpoint, or the nearest way up or down to its deck
+  const w = walk, c = GUARD_CHECKS[w.cp]; if (!c) return null;
+  const p = w.people.find(q => q.chk === w.cp);
+  if (c.d === w.d) return { x: p.x, y: p.y, text: c.ask };
+  const L = w.L, ways = walkDecks()[w.d].rooms.filter(r => r[3] === 'stairs' || r[3] === 'lift');
+  const best = ways.reduce((a, r) => Math.abs((r[1] + r[2]) / 2 * L - w.x) < Math.abs((a[1] + a[2]) / 2 * L - w.x) ? r : a);
+  const up = c.d < w.d;
+  return { x: (best[1] + best[2]) / 2 * L, y: 0, text: `${c.ask} It is on the ${walkDecks()[c.d].name.toLowerCase()}: go to the ${best[3]} and press ${up ? 'E (up)' : 'Q (down)'}.`, way: true };
+}
+function endWalk() {
+  const secs = walk.t; walk = null; flight.boardT = secs;
+  $('flight').classList.remove('walking'); syncWalkButtons(); shownTouch.clear();
+  note(`Boarded in ${mmss(secs)}. Air Force One is lined up on runway ${world.home.num} at ${world.home.name}. Throttle up (E) for take-off!`, 8);
+  $('tip').hidden = false; $('tip').textContent = flight.note.text;
+  wake();
+}
+function syncWalkButtons() { $('walkbtns').hidden = !walk; }
+const hm = s => `${Math.floor(s / 3600)} h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')} min`;
+// Guard mode, part 2: the long cruise. Skip jumps to just before the descent point; the time and fuel still count.
+function doSkip() {
+  if (!flight || !world || world.mode !== 'guard' || walk || flight.result) return;
+  const g = guide(flight, spec), d = cruiseSkip(flight, spec, g);
+  if (d) { trail = []; trailMax = 0; hist = []; G0 = guide(flight, spec); note(`Skipped ${Math.round(d / 1000).toLocaleString()} km (${hm(d / world.cruiseV)} of cruising). ${world.to.name} is ahead: the descent point comes up soon, then press 4 for Landing prep.`, 9); }
+  else note(flight.ground ? 'Take off first.' : g.phase === 'cruise' ? 'Too close to the descent point to skip now.' : `Skip works once you are cruising: climb to ${world.cruiseAlt.toLocaleString()} m first (flaps 2 turns the autopilot on).`, 5);
+}
+$('b-skip').addEventListener('click', doSkip);
+$('w-check').addEventListener('click', () => walkAction('check')); $('w-up').addEventListener('click', () => walkAction('up')); $('w-down').addEventListener('click', () => walkAction('down'));
+$('w-skip').addEventListener('click', () => { if (walk && !walk.done) { flight.boardSkipped = true; walk.done = true; walk.leave = 0; } });
+const RMCOL = { cockpit: '#9fb6cc', office: '#d9c27a', suite: '#e2b07c', meet: '#c9a3d6', staff: '#a9c8a0', crew: '#b9c1c9', galley: '#e9d8a8', medical: '#f0a8a8', seats: '#8fc3e0', lounge: '#a8dccb', tech: '#9aa4ad', cargo: '#c7b299', stairs: '#4b5966', lift: '#4b5966' };
+function drawWalk() {
+  const { ctx, w: cw, h: ch } = view, w = walk, L = w.L, hw = w.hw + 1, dk = w.decks[w.d], rooms = walkDecks()[w.d].rooms;
+  // keep the deck clear of the panels on top and (on phones) the thumb controls below
+  const narrow = cw < 600, top = narrow ? 120 : 76, bottom = TOUCH ? (ch > cw ? 330 : 118) : 12, avail = Math.max(120, ch - top - bottom);
+  const k = Math.max(6, Math.min(cw / 46, avail / (hw * 2 + 2))), cx = Math.max(dk.x0 - 4 + cw / k / 2, Math.min(dk.x1 + 4 - cw / k / 2, w.x));
+  const X = x => cw / 2 + (x - cx) * k, Y = y => top + avail / 2 + y * k;
+  ctx.fillStyle = '#1b2530'; ctx.fillRect(0, 0, cw, ch);
+  // hull
+  ctx.fillStyle = '#e9eef3'; ctx.beginPath(); ctx.moveTo(X(L * 0.025), Y(-hw)); ctx.lineTo(X(L * 0.93), Y(-hw)); ctx.lineTo(X(L), Y(-hw * 0.3)); ctx.lineTo(X(L), Y(hw * 0.3)); ctx.lineTo(X(L * 0.93), Y(hw));
+  ctx.lineTo(X(L * 0.025), Y(hw)); ctx.quadraticCurveTo(X(-2), Y(hw), X(-2), Y(0)); ctx.quadraticCurveTo(X(-2), Y(-hw), X(L * 0.025), Y(-hw)); ctx.fill();
+  ctx.fillStyle = '#7fb4dc';   // windows
+  for (let x = L * 0.04; x < L * 0.9; x += 3.2) { ctx.fillRect(X(x), Y(-hw) - 1, 1.2 * k, 3); ctx.fillRect(X(x), Y(hw) - 2, 1.2 * k, 3); }
+  // rooms
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const r of rooms) {
+    const a = r[1] * L, b = r[2] * L; if (X(b) < 0 || X(a) > cw) continue;
+    ctx.fillStyle = RMCOL[r[3]]; ctx.fillRect(X(a), Y(-hw + 0.5), (b - a) * k, (hw * 2 - 1) * k);
+    if (r[3] === 'stairs') { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; for (let y = -hw + 1; y < hw - 0.5; y += 0.8) { ctx.beginPath(); ctx.moveTo(X(a), Y(y)); ctx.lineTo(X(b), Y(y)); ctx.stroke(); } }
+    if (r[4]) {   // seats: rows across the cabin, with the aisle down the middle
+      ctx.fillStyle = 'rgba(30,60,90,.35)'; const n = r[4].abreast, half = Math.ceil(n / 2);
+      for (let x = a + 1; x < b - 0.8; x += r[4].pitch) for (let s = 0; s < n; s++) { const side = s < half ? -1 : 1, idx = s < half ? s : s - half, y = side * (DOOR + 0.4 + idx * (hw - DOOR - 1.2) / Math.max(1, half - 0.5)); ctx.fillRect(X(x), Y(y) - 0.25 * k, 0.55 * k, 0.5 * k); }
+    }
+    ctx.fillStyle = r[3] === 'stairs' || r[3] === 'lift' ? '#fff' : 'rgba(16,32,44,.8)'; ctx.font = `600 ${Math.max(10, Math.min(15, k * 0.9))}px ${getComputedStyle(document.body).fontFamily}`;
+    const label = r[3] === 'stairs' ? 'STAIRS' : r[3] === 'lift' ? 'LIFT' : r[0];
+    if ((b - a) * k > ctx.measureText(label).width * 0.6) { ctx.save(); ctx.translate(X((a + b) / 2), Y(hw - 2.2)); if ((b - a) * k < ctx.measureText(label).width + 6) { ctx.rotate(-Math.PI / 2); } ctx.fillText(label, 0, 0); ctx.restore(); }
+  }
+  // walls with a door in the middle
+  ctx.strokeStyle = '#33414e'; ctx.lineWidth = Math.max(2, k * 0.25);
+  for (const b of dk.walls) { ctx.beginPath(); ctx.moveTo(X(b), Y(-hw + 0.5)); ctx.lineTo(X(b), Y(-DOOR)); ctx.moveTo(X(b), Y(DOOR)); ctx.lineTo(X(b), Y(hw - 0.5)); ctx.stroke(); }
+  ctx.strokeRect(X(dk.x0), Y(-hw + 0.5), (dk.x1 - dk.x0) * k, (hw * 2 - 1) * k);
+  // where to go next
+  const g = walkGoal(), pulse = 0.5 + 0.5 * Math.sin(w.t * 5);
+  if (g) { ctx.strokeStyle = `rgba(60,255,138,${0.5 + 0.5 * pulse})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(g.x), Y(g.y), (g.way ? 3 : 2.2) * k, 0, Math.PI * 2); ctx.stroke();
+    if (X(g.x) < 20 || X(g.x) > cw - 20) { const right = X(g.x) > cw - 20, ax = right ? cw - 18 : 18, ay = Y(0); ctx.fillStyle = '#3cff8a'; ctx.beginPath(); ctx.moveTo(ax + (right ? 12 : -12), ay); ctx.lineTo(ax, ay - 12); ctx.lineTo(ax, ay + 12); ctx.fill(); } }
+  // people
+  for (const p of w.people) {
+    if (p.d !== w.d || X(p.x) < -20 || X(p.x) > cw + 20) continue;
+    const done = p.chk !== undefined && p.chk < w.cp;
+    ctx.fillStyle = p.boss ? '#c9a646' : p.who ? (done ? '#4b7a5a' : '#1f3a66') : '#6b7884';
+    ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 0.55 * k, 0, Math.PI * 2); ctx.fill();
+    if (p.who) { ctx.fillStyle = '#10202c'; ctx.font = `600 ${Math.max(10, Math.min(13, k * 0.75))}px ${getComputedStyle(document.body).fontFamily}`; ctx.fillText(p.who + (done ? ' ✓' : ''), X(p.x), Y(p.y) - 1.3 * k); }
+  }
+  // you
+  ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#d23a2a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(w.x), Y(w.y), 0.6 * k, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#d23a2a'; ctx.beginPath(); ctx.arc(X(w.x + Math.cos(w.face) * 0.45), Y(w.y + Math.sin(w.face) * 0.45), 0.2 * k, 0, Math.PI * 2); ctx.fill();
+  if (w.flash) { ctx.fillStyle = `rgba(255,255,255,${w.flash * 0.5})`; ctx.fillRect(0, 0, cw, ch); }
+  // panel: deck, checkpoint, time
+  const font = getComputedStyle(document.body).fontFamily;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = 'rgba(8,14,20,.82)'; const pw = narrow ? cw - 20 : Math.min(cw - 240, 420); ctx.fillRect(10, 10, pw, 54);
+  ctx.fillStyle = '#cfdde8'; ctx.font = `600 11px ${font}`; ctx.fillText(`BOARDING · ${walkDecks()[w.d].name.toUpperCase()} · ${mmss(w.t)}`, 18, 17);
+  ctx.fillStyle = '#3cff8a'; ctx.font = `600 15px ${font}`; ctx.fillText(w.cp < GUARD_CHECKS.length ? `${narrow ? '' : 'Checkpoint '}${w.cp + 1} of ${GUARD_CHECKS.length}: ${GUARD_CHECKS[w.cp].who}` : 'All checkpoints passed', 18, 36);
+  // deck map: all three decks, you and the next checkpoint
+  const mw = narrow ? cw - 32 : 200, mx0 = cw - mw - 16, my0 = narrow ? 70 : 10;
+  ctx.fillStyle = 'rgba(8,14,20,.82)'; ctx.fillRect(mx0 - 6, my0, mw + 12, 50);
+  walkDecks().forEach((d2, i) => { const y = my0 + 6 + i * 14; ctx.fillStyle = i === w.d ? '#5d7590' : '#34424f'; ctx.fillRect(mx0, y, mw, 10);
+    for (const r of d2.rooms) if (r[3] === 'stairs' || r[3] === 'lift') { ctx.fillStyle = '#9aa4ad'; ctx.fillRect(mx0 + r[1] * mw, y, Math.max(2, (r[2] - r[1]) * mw), 10); } });
+  const c = GUARD_CHECKS[w.cp]; if (c) { const p = w.people.find(q => q.chk === w.cp); ctx.fillStyle = '#3cff8a'; ctx.fillRect(mx0 + p.x / L * mw - 3, my0 + 8 + c.d * 14, 6, 6); }
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(mx0 + w.x / L * mw, my0 + 11 + w.d * 14, 3.5, 0, Math.PI * 2); ctx.fill();
+  // instruction line
+  const tip = $('tip'), say = w.t < w.msgT ? w.msg : g ? g.text : '';
+  const txt = TOUCH ? say.replace(/press E \(up\)/g, 'tap Stairs up').replace(/press Q \(down\)/g, 'tap Stairs down').replace(/press E to go up or Q to go down/g, 'tap Stairs up or Stairs down') : say;
+  tip.hidden = !txt; if (tip.textContent !== txt) tip.textContent = txt;
+}
+
 // ---------- first-flight checklist: one control at a time, ticked off as you do it ----------
 const COACH = [
   { text: 'Full power: press E a few times, or drag Throttle to 100%.', done: f => f.throttle >= 0.9 || f.flew },
@@ -1123,7 +1311,7 @@ function tick(dt) {
       roll = Math.max(-1, Math.min(1, (bankCmd - flight.phi) / 8));
     }
     if (flight.at) {
-      const v0 = Math.hypot(flight.vx, flight.vy), vT = Math.max(spec.vStall * 1.35, Math.min(spec.vMax * 0.6, spec.vStall * 1.6));
+      const v0 = Math.hypot(flight.vx, flight.vy), vT = world.cruiseV && flight.h > 1500 ? world.cruiseV : Math.max(spec.vStall * 1.35, Math.min(spec.vMax * 0.6, spec.vStall * 1.6));
       const th = Math.max(0, Math.min(1, flight.throttle + (vT - v0) * 0.02 * dt * 4));
       flight.throttle = th; $('thr').value = Math.round(th * 100); $('o-thr').textContent = Math.round(th * 100) + '%';
     }
@@ -1218,6 +1406,10 @@ function frameUI(dt) {
       else if (turnTxt) msg = turnTxt + ' to follow the green route.';
       else if (g.phase === 'cruise' && g.dtg - g.todDist < Math.max(1500, v * 25)) msg = 'Descent point coming up on the map. Get ready to throttle back.';
       else if (flight.flapSet === 1 && flight.h > 100) msg = 'Climbing nicely. Set flaps to 2 Flat (press 2) to fly faster.';
+      if (world.mode === 'guard' && !(flight.note && flight.t < flight.note.until) && !flight.terrWarn) {
+        if (g.phase === 'cruise' && g.dtg - g.Ff - g.todDist > 70000 && Math.abs(flight.h - world.cruiseAlt) < 300) msg = `Cruising at ${world.cruiseAlt.toLocaleString()} m over ${world.route.sea}. Press K (Skip to descent) to jump ahead: the time and fuel still count.`;
+        else if (g.phase === 'climb' && flight.h > 300 && (flight.ap || flight.flapSet === 2)) msg = `Climbing to ${world.cruiseAlt.toLocaleString()} m cruise height, the autopilot is flying.`;
+      }
       if (world.mode === 'fight' || world.mode === 'stunt' || world.situation === 'ocean') {
         const nt = flight.note && flight.t < flight.note.until ? flight.note.text : '';
         if (world.mode === 'fight' && fight.B) msg = nt || (fight.warn ? 'Missile coming! Turn hard and press G for flares.' : fight.bombTip);
@@ -1233,6 +1425,7 @@ function frameUI(dt) {
       if (v >= soundSpeed(flight.h) && !flight.boom) { flight.boom = true; note('BOOM! Sonic boom: you are flying faster than the speed of sound (Mach 1).', 6); }
       else if (v < soundSpeed(flight.h) * 0.95) flight.boom = false;
     }
+    if (world.mode === 'guard') { const left = Math.max(0, G0.dtg); setText('h-stunt', `${Math.round(left / 1000).toLocaleString()} km · ${hm(left / world.cruiseV)}`); }
     if (world.sitType) {
       const f = flight, sx = world.sitType;
       if (sx === 'wind') { const W = world.wind, rel = wrap(Math.atan2(-W[0], -W[1]) - f.psi) / DEG; $('h-stunt').textContent = `${Math.round(Math.hypot(...W) * 3.6)} km/h ${rel < 0 ? '◀ from left' : 'from right ▶'}`; }
@@ -2144,10 +2337,18 @@ const SITS = {
   storm: { title: 'Storm landing', map: 'Storm Island', plane: 'b747', icon: '', text: 'Heavy turbulence, rain and fog. Bring a jumbo jet down onto a small island runway.' },
   carrier: { title: 'Aircraft carrier landing', map: 'Carrier group', plane: 'f35c', icon: '', text: 'Land on a 250 m deck at sea. No flare: fly the green line into the deck and the wire stops you.' }
 };
-let sitId = 'random', rolled = null, fightJet = 'f35', fightSize = 1;
+let guardRoute = 'atlantic', sitId = 'random', rolled = null, fightJet = 'f35', fightSize = 1;
 function buildModePanel() {
-  const p = $('modepanel'); p.hidden = !['situation', 'fight', 'stunt'].includes(gameMode);
+  const p = $('modepanel'); p.hidden = !['situation', 'fight', 'stunt', 'guard'].includes(gameMode);
   if (p.hidden) return;
+  if (gameMode === 'guard') {
+    const km = id => { const r = GUARD_ROUTES[id]; return Math.round(greatCircle(AIRPORTS[r.from], AIRPORTS[r.to]).d / 1000); };
+    p.innerHTML = '<span class="label">Pick a route</span><div class="sitlist">' + Object.entries(GUARD_ROUTES).map(([k, r]) => { const A = AIRPORTS[r.from], B = AIRPORTS[r.to];
+      return `<button class="pc sit" data-g="${k}" aria-pressed="${k === guardRoute}"><b>${r.title}</b><span class="n">${km(k).toLocaleString()} km<br>over ${r.sea.replace('the ', '')}</span><span class="r">${A.name} (${A.city}) to ${B.name} (${B.city})</span></button>`; }).join('') +
+      '</div><p class="hint">Real airports and real distances. Air Force One burns fuel slowly enough to cross an ocean, and once you are cruising, K skips ahead to the descent. The runways are lengthened if the B-121B needs more room.</p>';
+    p.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { guardRoute = b.dataset.g; buildModePanel(); }));
+    return;
+  }
   if (gameMode === 'situation') {
     const done = stats.sits || {};
     p.innerHTML = '<div class="sitlist">' + Object.entries(SITS).map(([k, s]) => `${k === 'normal' ? '<span class="label">Or pick a classic</span>' : ''}<button class="pc sit" data-s="${k}" aria-pressed="${k === sitId}"><b>${s.title}${done[k] ? ' <i class="tag ok">Done</i>' : ''}</b><span class="n">${s.plane ? REAL[s.plane].name.replace('Lockheed Martin ', '') : '5 planes'}<br>${s.map}</span><span class="r">${s.text}</span></button>`).join('') + '</div>';
@@ -2733,18 +2934,20 @@ function bailOut() {
 
 function finish() {
   const f = flight, r = f.result;
-  const titles = { victory: world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
+  const titles = { victory: world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'guard' ? 'President delivered' : world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
   $('r-title').textContent = titles[r.kind];
   $('r-title').className = ['win', 'victory', 'stuntdone', 'ditched', 'bailed'].includes(r.kind) ? 'ok' : r.kind === 'landed' || r.kind === 'decoy' ? 'warn' : 'bad';
   $('r-why').textContent = r.why;
   $('r-sheet').innerHTML = cell('Flown', (f.x / 1000).toFixed(2), 'km') + cell('Highest', Math.round(f.maxH), 'm') +
-    cell('Fastest', kmh(f.maxV), 'km/h') + cell('Peak load', f.maxN.toFixed(1), 'g');
+    cell('Fastest', kmh(f.maxV), 'km/h') + cell('Peak load', f.maxN.toFixed(1), 'g') +
+    (world.mode === 'guard' ? cell('Boarding', f.boardSkipped ? 'skipped' : f.boardT ? mmss(f.boardT) : '--', '') + cell('Flight time', hm(f.t), '') + cell('Fuel left', Math.round(100 * f.fuel / spec.fuel), '%') : '');
   $('r-label').textContent = 'Flight report';
   const save = () => { try { localStorage.setItem('wingwright-stats', JSON.stringify(stats)); } catch (e) {} };
   stats.flights = (stats.flights || 0) + 1; save();
   if (world.mode === 'situation' && world.situation === 'random' && r.kind === 'win') { stats.newSits = (stats.newSits || 0) + 1; save(); $('r-label').textContent = `Random situations handled: ${stats.newSits}`; showBest(); }
   else if (world.mode === 'situation' && ['win', 'ditched', 'bailed'].includes(r.kind)) { stats.sits = stats.sits || {}; stats.sits[world.situation] = true; save(); $('r-label').textContent = `Situation ${Object.keys(stats.sits).length} of 5 done`; showBest(); }
   else if (world.mode === 'fight' && r.kind === 'victory') { stats.fightWins = (stats.fightWins || 0) + 1; const kk = fight.kind, sz = fightSize, key = `w_${kk}_${sz}`; stats[key] = (stats[key] || 0) + 1; save(); $('r-label').textContent = `${kk === 'bomber' ? 'Bombing runs' : kk === 'ww2' ? 'WW2 battles' : 'Jet battles'} won at this size: ${stats[key]} · ${stats.fightWins} battles in all`; showBest(); }
+  else if (world.mode === 'guard' && r.kind === 'win') { stats.guard = (stats.guard || 0) + 1; if (f.boardT && !f.boardSkipped) stats.boardBest = Math.min(stats.boardBest || 1e9, f.boardT); save(); $('r-label').textContent = `Presidents delivered: ${stats.guard}`; showBest(); }
   else if (world.mode === 'stunt' && r.kind === 'stuntdone') { stats.stuntBest = Math.max(stats.stuntBest || 0, team.score); save(); $('r-label').textContent = `Display score ${team.score}`; showBest(); }
   else if (r.kind === 'win' && world.mode === 'challenge') { stats.peaks = (stats.peaks || 0) + 1; try { localStorage.setItem('wingwright-stats', JSON.stringify(stats)); } catch (e) {} $('r-label').textContent = `Mountain landing ${stats.peaks}`; showBest(); }
   else if (r.kind === 'win') {
@@ -2755,7 +2958,7 @@ function finish() {
   $('result').hidden = false; $('again').focus();
 }
 
-function backToHangar() { sound.quiet(); cancelAnimationFrame(raf); flight = null; $('flight').hidden = true; $('hangar').hidden = false; drawPlan(); startTurntable(); }
+function backToHangar() { sound.quiet(); cancelAnimationFrame(raf); flight = null; walk = null; $('flight').classList.remove('walking'); $('flight').hidden = true; $('hangar').hidden = false; drawPlan(); startTurntable(); }
 $('fly').addEventListener('click', () => startFlight(true));
 $('again').addEventListener('click', () => startFlight(true));
 $('retry').addEventListener('click', () => startFlight(false));
@@ -2792,11 +2995,18 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyP' || e.code === 'Escape') { if (!e.repeat) togglePause(); e.preventDefault(); return; }
   if (e.code === 'KeyR') { if (!e.repeat) askRestart(); return; }
   if (paused || flight.result) return;   // let Space and Enter work the buttons on the pause and results cards
+  if (walk) {   // boarding: walk, check in, stairs
+    if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = 1; e.preventDefault(); return; }
+    if (e.repeat) return;
+    if (e.code === 'Space') { walkAction('check'); e.preventDefault(); } else if (e.code === 'KeyE') walkAction('up'); else if (e.code === 'KeyQ') walkAction('down');
+    return;
+  }
   if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = 1; e.preventDefault(); return; }
   if (e.code === 'Space') { keys.gun = 1; e.preventDefault(); return; }
   if (e.code === 'KeyE') { pilotThrottle(+$('thr').value + 10); e.preventDefault(); return; }   // throttle may repeat while held
   if (e.code === 'KeyQ') { pilotThrottle(+$('thr').value - 10); e.preventDefault(); return; }
   if (e.repeat) return;   // everything else acts once per press, even when the key is held
+  if (e.code === 'KeyK') doSkip();
   if (e.code === 'KeyV') toggleView();
   else if (e.code === 'Digit1' || e.code === 'Numpad1') setFlaps(1);
   else if (e.code === 'Digit2' || e.code === 'Numpad2') setFlaps(2);

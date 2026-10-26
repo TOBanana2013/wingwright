@@ -22,7 +22,7 @@ function control(f, s) {
     const app = g.phase === 'approach' || g.phase === 'flare', glide = f.engineOut || (f.fuel <= 0 && !!f.world.leak);
     if (!app && f.agl > 100) f.flaps = 0;
     if ((app && g.captured) || glide) f.flaps = 1;
-    const vT = app || glide ? P.approachSpeed(s, f.h) : Math.max(s.vStall * 1.35, Math.min(s.vMax * 0.6, s.vStall * 1.6)) * (f.world.timeLimit ? 1.25 : 1);
+    const vT = app || glide ? P.approachSpeed(s, f.h) : f.world.cruiseV && f.h > 1500 ? f.world.cruiseV : Math.max(s.vStall * 1.35, Math.min(s.vMax * 0.6, s.vStall * 1.6)) * (f.world.timeLimit ? 1.25 : 1);
     f.throttle = Math.max(0, Math.min(1, 0.4 + (vT - v) * 0.08));
     f.brake = app && v > vT + 8 ? 1 : 0; f.reverse = 0;
     let want = g.want;
@@ -43,7 +43,7 @@ function control(f, s) {
 }
 
 // Fly until the flight ends (or, in free fly, until the first full-stop landing). Returns the flight.
-function fly(s, world, { seed = 1, maxT = 1800, start } = {}) {
+function fly(s, world, { seed = 1, maxT = 1800, start, skip } = {}) {
   const f = P.newFlight(s, world, seed);
   if (start) {
     Object.assign(f, { e: start.e, n: start.n, h: start.h, psi: start.psi, vx: start.v, vy: 0, theta: 2, phi: 0, ground: false, flew: true, x: 1e5, flaps: start.flaps ? 1 : 0 });
@@ -52,6 +52,8 @@ function fly(s, world, { seed = 1, maxT = 1800, start } = {}) {
   while (!f.result && f.t < maxT && !(world.free && f.landings)) {
     if (f.engineOutAt && f.t > f.engineOutAt) f.engineOut = true;
     P.stepFlight(f, s, control(f, s), STEP);
+    // long trips: once settled at cruise height, jump over the quiet middle like the player's Skip button
+    if (skip && !f.ground && Math.abs(f.h - (world.cruiseAlt || 0)) < 100 && Math.abs(f.vy) < 2) P.cruiseSkip(f, s, P.guide(f, s));
   }
   return f;
 }

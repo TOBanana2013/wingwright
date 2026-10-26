@@ -222,6 +222,63 @@ function makeRandomSituation(s, type, map, seed) {
   for (const x of w.runways) x.num = rwNum(x.hdg);
   return w;
 }
+// ---------- Guard mode: fly the President between real airports, across the sea ----------
+// Airport positions are real (latitude/longitude); the runway is lengthened if the plane needs more.
+// land: a round patch of land around the airport, centre offset [east, north] in km and radius in km, so the coast sits
+// roughly where it really is. Everywhere else is sea.
+const AIRPORTS = {
+  andrews: { name: 'Joint Base Andrews', city: 'Washington, D.C.', lat: 38.811, lon: -76.867, hdg: 10, len: 3353, land: [-150, 0, 300] },
+  stansted: { name: 'London Stansted', city: 'London', lat: 51.885, lon: 0.235, hdg: 43, len: 3049, land: [-200, 0, 260] },
+  travis: { name: 'Travis Air Force Base', city: 'California', lat: 38.263, lon: -121.927, hdg: 34, len: 3353, land: [200, 50, 280] },
+  hickam: { name: 'Joint Base Pearl Harbor-Hickam', city: 'Honolulu, Hawaii', lat: 21.319, lon: -157.922, hdg: 82, len: 3749, land: [0, 15, 22] },
+  yokota: { name: 'Yokota Air Base', city: 'Tokyo', lat: 35.749, lon: 139.348, hdg: 358, len: 3353, land: [-100, 150, 230] }
+};
+const GUARD_ROUTES = {
+  atlantic: { from: 'andrews', to: 'stansted', title: 'Washington to London', sea: 'the Atlantic Ocean' },
+  homebound: { from: 'stansted', to: 'andrews', title: 'London to Washington', sea: 'the Atlantic Ocean' },
+  hawaii: { from: 'travis', to: 'hickam', title: 'California to Hawaii', sea: 'the Pacific Ocean' },
+  japan: { from: 'hickam', to: 'yokota', title: 'Hawaii to Tokyo', sea: 'the Pacific Ocean' }
+};
+// great-circle distance (m) and starting compass bearing (rad) between two airports
+function greatCircle(a, b) {
+  const R = 6371000, f1 = a.lat * DEG, f2 = b.lat * DEG, dl = (b.lon - a.lon) * DEG;
+  const h = Math.sin((f2 - f1) / 2) ** 2 + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) ** 2;
+  const d = 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  const brg = Math.atan2(Math.sin(dl) * Math.cos(f2), Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl));
+  return { d, brg };
+}
+function guardCruise(s) { return Math.min(9000, s.ceiling - 1500); }
+// a steady cruising speed (true airspeed) at cruise height: comfortably above the stall up there
+function guardSpeed(s) { const hc = guardCruise(s); return Math.max(s.vStall * 1.6, Math.min(s.vMax * 0.75, s.vStall * 1.35 * Math.exp(hc / 17000) * 1.25)); }
+function makeGuardWorld(s, routeId, seed) {
+  const R0 = GUARD_ROUTES[routeId] || GUARD_ROUTES.atlantic, A = AIRPORTS[R0.from], B = AIRPORTS[R0.to];
+  const gc = greatCircle(A, B), wid = Math.max(45, s.rwyWid);
+  const place = (ap, ce, cn, kind) => { const hdg = ap.hdg * DEG, len = Math.max(ap.len, kind === 'home' ? s.homeLen : s.rwyLen);
+    return { e: ce - Math.sin(hdg) * len / 2, n: cn - Math.cos(hdg) * len / 2, hdg, len, wid, kind, name: ap.name, city: ap.city, elev: 0, realLen: ap.len }; };
+  const home = place(A, 0, 0, 'home'), tgt = place(B, Math.sin(gc.brg) * gc.d, Math.cos(gc.brg) * gc.d, 'target');
+  const blobs = [[A, 0, 0], [B, Math.sin(gc.brg) * gc.d, Math.cos(gc.brg) * gc.d]].map(([ap, e, n]) => ({ e: e + ap.land[0] * 1000, n: n + ap.land[1] * 1000, r: ap.land[2] * 1000 }));
+  // a wobbly coastline, so the shore is not a perfect circle
+  const landAt = (e, n) => blobs.some(b => { const a = Math.atan2(e - b.e, n - b.n); return Math.hypot(e - b.e, n - b.n) < b.r * (1 + 0.08 * Math.sin(a * 5) + 0.05 * Math.sin(a * 11 + 1)); });
+  const cruiseAlt = guardCruise(s), cruiseV = guardSpeed(s);
+  // fuel: real long-haul jets burn slowly enough to cross an ocean; scale the burn so a full tank lands with about 40% left
+  const tCruise = gc.d / cruiseV, burnMul = Math.min(1, s.fuel * 0.6 / (tCruise * 0.75 * s.burn));
+  const w = seaWorld([home, tgt], tgt, landAt, { mode: 'guard', guard: routeId, route: R0, dist: gc.d, cruiseAlt, cruiseV, burnMul, from: A, to: B });
+  for (const x of w.runways) x.num = rwNum(x.hdg);
+  return w;
+}
+// Skip the long, quiet middle of the flight: jump ahead along the route to just before the descent point,
+// using up the time and fuel that stretch would really take. Returns the distance skipped (m), or 0 if not now.
+function cruiseSkip(f, s, g) {
+  if (f.ground || !g || g.phase !== 'cruise' || g.captured) return 0;
+  const v = Math.hypot(f.vx, f.vy), keep = g.todDist + 40000, dist = g.dtg - g.Ff - keep;
+  if (dist < 30000 || v < s.vStall) return 0;
+  const [ae, an] = g.faf, de = ae - f.e, dn = an - f.n, L = Math.hypot(de, dn), k = Math.min(1, dist / L);
+  const vc = f.world.cruiseV || v, secs = dist / vc, used = 0.75 * s.burn * (f.world.burnMul || 1) * secs;
+  if (used >= f.fuel) return 0;
+  f.e += de * k; f.n += dn * k; f.psi = Math.atan2(de, dn); f.phi = 0; f.slip = 0;
+  f.fuel -= used; f.t += secs; f.x += dist; f.skipped = (f.skipped || 0) + secs;
+  return dist;
+}
 function makeWorld(s, seed, mode) { return mode === 'free' ? makeFreeWorld(s, seed) : mode === 'challenge' ? makeMountainWorld(s, seed) : makeMissionWorld(s, seed); }
 const smooth = (e0, e1, x) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -305,7 +362,8 @@ function runwayAt(world, e, n) {
 function finalLen(s) { const pp = pathParams(s); return Math.max(6000, Math.min(14000, 1.3 * pp.cruise / Math.tan(pp.gs))); }
 
 function newFlight(s, world, seed) {
-  return { x: 0, e: 0, n: 0, psi: 0, phi: 0, h: 0, vx: 0, vy: 0, theta: 0, throttle: 0, flaps: 1, flapSet: 1, brake: 0, fuel: s.fuel, ground: true, world,
+  const h0 = world.home || { e: 0, n: 0, hdg: 0 };   // line up at the start of the home runway
+  return { x: 0, e: h0.e, n: h0.n, psi: h0.hdg, phi: 0, h: 0, vx: 0, vy: 0, theta: 0, throttle: 0, flaps: 1, flapSet: 1, brake: 0, fuel: s.fuel, ground: true, world,
     flew: false, t: 0, maxH: 0, maxV: 0, maxN: 1, gust: 0, stalled: false, n_: 1, nLoad: 1, alpha: 0, touchVy: 0, result: null,
     slip: 0, scrape: 0, rng: makeRng(subSeed(seed, 9)) };
 }
@@ -423,7 +481,7 @@ function stepFlight(f, s, input, dt) {
   const gnd = groundAt(f.world, f.e, f.n); f.gnd = gnd; f.agl = f.h - gnd;
   if (f.ground && f.world.water && f.world.water(f.e, f.n) && !runwayAt(f.world, f.e, f.n)) { f.result = { kind: 'crash', why: 'You rolled off the end into the water. Next time land nearer the start and use the brakes.' }; return; }
   if (f.ground) { f.h = gnd; f.agl = 0; if (!safeGround(f.world, f.e, f.n, gnd)) { f.result = { kind: 'crash', why: 'Rolled off the runway and down the mountainside.' }; return; } }
-  if (f.fuel > 0) f.fuel = Math.max(0, f.fuel - Math.max(f.throttle, f.reverse && f.ground ? 0.6 : 0) * s.burn * (ab > 1 ? 3 : 1) * dt);
+  if (f.fuel > 0) f.fuel = Math.max(0, f.fuel - Math.max(f.throttle, f.reverse && f.ground ? 0.6 : 0) * s.burn * (ab > 1 ? 3 : 1) * (f.world.burnMul || 1) * dt);
   f.t += dt; f.alpha = alpha; f.stalled = c.stalled && !f.ground;
   f.nLoad = L / (mass * G);
   if (!f.ground && f.agl > 2) f.flew = true;
@@ -475,6 +533,7 @@ function stepFlight(f, s, input, dt) {
       else if (w === tg && td.ang >= 20) f.result = { kind: 'landed', why: `You touched down across the runway (${Math.round(td.ang)}° off). Line up with the centre line before landing.` };
       else if (onTarget && w.kind === 'carrier') f.result = { kind: 'win', why: `Trap! You caught the arrestor wire and stopped on the carrier deck. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
       else if (onTarget && f.world.mode === 'situation' && f.world.situation === 'himalaya') f.result = { kind: 'win', why: `You landed in the Himalayas at ${tg.name}, ${tg.elev} m up! Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
+      else if (onTarget && f.world.mode === 'guard') f.result = { kind: 'win', why: `Air Force One is down safely at ${tg.name} (${tg.city}). Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
       else if (onTarget && f.world.timeLimit && f.t > f.world.timeLimit) f.result = { kind: 'landed', why: `You landed at ${tg.name}, but ${Math.round(f.t - f.world.timeLimit)} s too late. Fly faster and take the shortest route.` };
       else if (onTarget) f.result = { kind: 'win', why: f.world.mode === 'challenge' ? `You landed in the mountains! Runway ${tg.num} at ${tg.name}, ${tg.elev} m up. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` : `You stopped on runway ${tg.num} at ${tg.name}. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
       else if (td.rw && td.rw.kind === 'fake') f.result = { kind: 'decoy', why: `That was a closed decoy strip, ${km} the real target.` };
@@ -515,7 +574,7 @@ function guide(f, s) {
     wantHdg = wrap(wantHdg + Math.asin(Math.max(-0.8, Math.min(0.8, -wp / v))));
   }
   const turn = f.ground ? 0 : wrap(wantHdg - f.psi) / DEG;
-  const Hr = tg.elev || 0, cr = cruise + Hr, agl = f.agl === undefined ? f.h : f.agl;
+  const Hr = tg.elev || 0, cr = (f.world.cruiseAlt || cruise) + Hr, agl = f.agl === undefined ? f.h : f.agl;
   const lift = Math.min(home.len * 0.8, Math.max(40, s.roll));
   const alt = (odo, d) => Math.min(cr, Math.max(0, odo - lift) * Math.tan(climb), Hr + Math.max(0, d) * Math.tan(gs));
   const todDist = (Math.max(cr, f.h) - Hr) / Math.tan(gs), tocOdo = lift + cr / Math.tan(climb);
@@ -524,7 +583,7 @@ function guide(f, s) {
   let want = Math.atan2(alt(f.x + lk, dtg - lk) - f.h, lk) / DEG, phase;
   if (f.ground) { phase = f.flew ? 'rollout' : 'takeoff'; want = !f.flew && v > s.vLift ? Math.min(climbDeg, 8) : 0; }
   else if (captured && !tg.arrest && agl < Math.max(12, -f.vy * 3.5) && along < 900) { phase = 'flare'; want = s.aero ? -1.5 : s.vStallF < 40 ? -Math.max(1.2, Math.min(gsDeg * 0.8, agl * 0.45)) : -0.8; }
-  else if (f.flew && along < 0 && !captured) { phase = 'goaround'; }
+  else if (f.flew && along < 0 && !captured && Math.hypot(f.e - tg.e, f.n - tg.n) < 40000) { phase = 'goaround'; }   // past the runway (not on a long trip that just starts out behind it)
   else if (dtg < todDist) phase = 'approach';
   else if (f.x < tocOdo && f.h < cr - 20) phase = 'climb';
   else phase = 'cruise';
@@ -533,4 +592,4 @@ function guide(f, s) {
   want = Math.max(-8, Math.min(climbDeg, want));
   return { want, gamma, phase, turn, wantHdg, dtg, todDist, tocOdo, lift, alt, cruise: cr, Hr, gsDeg, climbDeg, captured, along, cross, faf, Ff };
 }
-if (typeof module !== 'undefined') module.exports = { soundSpeed, makeRng, subSeed, lineUp, pathParams, finalLen, makeRandomSituation, NEW_TYPES, NEW_MAPS, approachSpeed, makeSituationWorld, mach, thrust, coeffs, specs, newFlight, stepFlight, makeWorld, runwayAt, guide, rwPt, rwLocal, wrap, DEG, groundAt, safeGround };
+if (typeof module !== 'undefined') module.exports = { AIRPORTS, GUARD_ROUTES, greatCircle, makeGuardWorld, cruiseSkip, guardSpeed, soundSpeed, makeRng, subSeed, lineUp, pathParams, finalLen, makeRandomSituation, NEW_TYPES, NEW_MAPS, approachSpeed, makeSituationWorld, mach, thrust, coeffs, specs, newFlight, stepFlight, makeWorld, runwayAt, guide, rwPt, rwLocal, wrap, DEG, groundAt, safeGround };

@@ -56,3 +56,13 @@ test('build-your-own designs in every size class fly', () => {
   }
   assert.deepStrictEqual(fails, []);
 });
+
+test('guard mode: Air Force One crosses every ocean route and lands', () => {
+  const s = P.specs(REAL.b121b), fails = [];
+  for (const id of Object.keys(P.GUARD_ROUTES)) {
+    const W = P.makeGuardWorld(s, id, 3), f = A.fly(s, W, { seed: 3, skip: true, maxT: 200000 });
+    if (!A.won(f, W)) fails.push(`${id} -> ${describe(f)}`);
+    else if (f.fuel < s.fuel * 0.2) fails.push(`${id} -> landed with only ${Math.round(100 * f.fuel / s.fuel)}% fuel`);
+  }
+  assert.deepStrictEqual(fails, []);
+});

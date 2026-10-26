@@ -77,3 +77,14 @@ test('turbulence feels the same at any step size', () => {
   const a = spread(1 / 30), b = spread(1 / 240);
   assert.ok(a / b > 0.6 && a / b < 1.6, `gust size ${a.toFixed(3)} at 30 steps/s vs ${b.toFixed(3)} at 240 steps/s`);
 });
+
+test('guard routes use real great-circle distances and start over land, cross the sea', () => {
+  const gc = P.greatCircle(P.AIRPORTS.andrews, P.AIRPORTS.stansted);
+  assert.ok(Math.abs(gc.d / 1000 - 5904) < 30, `Washington-London ${Math.round(gc.d / 1000)} km`);
+  const s = P.specs(REAL.b121b);
+  for (const id of Object.keys(P.GUARD_ROUTES)) {
+    const W = P.makeGuardWorld(s, id, 1), tg = W.target, mid = [tg.e / 2, tg.n / 2];
+    assert.ok(!W.water(W.home.e, W.home.n) && !W.water(tg.e, tg.n), `${id}: both airports on land`);
+    assert.ok(W.water(mid[0], mid[1]), `${id}: halfway is over the sea`);
+  }
+});
