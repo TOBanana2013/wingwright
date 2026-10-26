@@ -17,13 +17,22 @@ const TAILS = {
 };
 const gearH = p => Math.max(0.5, p.length * 0.045);
 
+// Seeded random numbers (mulberry32). Math.imul keeps the maths exact in 32 bits, so the same seed always
+// gives the same world. No seed (undefined/null) means a random one; seed 0 is a real seed.
+function makeRng(seed) {
+  let a = (seed ?? Math.floor(Math.random() * 4294967296)) >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let x = a; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+}
+// a different but repeatable seed for a world built inside another world builder
+const subSeed = (seed, k) => seed === undefined || seed === null ? undefined : Math.imul((seed >>> 0) ^ Math.imul(k, 0x9e3779b9), 0x5bd1e995) >>> 0;
+
 function specs(p) {
   const tl = TAILS[p.tail];
   let s;
-  if (p.real) {
+  if (p.fixed) {
     const S = p.S, AR = p.span * p.span / S;
     s = { S, AR, mass: p.mass, dry: p.mass - p.fuel, cd0: p.cd0, nlim: p.nlim, clmax: p.clmax, flapCl: p.flapCl,
-      jet: p.engine === 'jet', supersonic: !!p.supersonic, abMult: p.abMult || 0, transCd: p.transCd || 0, waveCd: p.waveCd || 0, thrust0: p.thrust || 0, power: p.power || 0, vref: p.vref || 18,
+      jet: p.engine === 'jet', supersonic: !!p.supersonic, abMult: p.abMult || 0, transCd: p.transCd || 0, waveCd: p.waveCd || 0, thrust0: p.thrust || 0, power: p.power || 0, vThrustMin: p.vThrustMin || 29,
       front: p.width * p.height * 0.8, burn: p.fuel / (0.65 * 1200) };
   } else {
     const mat = MATERIALS[p.material], sh = SHAPES[p.shape];
@@ -32,9 +41,14 @@ function specs(p) {
     const dry = S * mat.wing + wet * mat.skin + sh.mass + tl.mass + 35 + 0.85 * p.power + 80;
     s = { S, AR, mass: dry + p.fuel, dry, front, cd0: (sh.cd * front + 0.004 * wet) / S + tl.cd + 0.006,
       nlim: mat.n * Math.pow(Math.min(1, 9 / AR), 0.7), clmax: 1.45, flapCl: 0.6,
-      jet: false, power: p.power, vref: 18, burn: p.power * 0.001 };
+      jet: false, power: p.power, vThrustMin: 29, burn: p.power * 0.001 };
   }
-  s.inc = p.incidence; s.fuel = p.fuel; s.brakeCd = p.brakeCd || 0; s.real = !!p.real; s.span = p.span;
+  s.inc = p.incidence; s.fuel = p.fuel; s.brakeCd = p.brakeCd || 0; s.fixed = !!p.fixed; s.span = p.span;
+  // how far the nose can rise on the runway before the tail hits it (tail-wheel planes already sit tail-down)
+  s.tailStrike = p.tailWheel ? 15 : Math.max(7, Math.min(15, Math.atan2(gearH(p) + 0.35 * p.height, 0.45 * p.length) / DEG));
+  // the sink rate the landing gear survives: airliner gear is built for about 3 m/s, light planes take a little more
+  s.sinkMax = p.sinkMax || (s.mass > 40000 ? 3.2 : 4);
+  s.nlimNeg = -0.4 * s.nlim;
   const heavy = s.mass > 15000;
   s.maxBank = p.maxBank || (heavy ? 30 : 45); s.rollRate = p.rollRate || (heavy ? 15 : 35);
   s.a = 2 * Math.PI * s.AR / (s.AR + 2);
@@ -69,25 +83,30 @@ function specs(p) {
   const vTd = s.vStallF * 1.25;
   s.landRoll = vTd * vTd / (2 * 0.43 * G) + vTd * 4;
   // runways are sized for the plane: long enough to take off (home) and to land and stop (other fields), wide enough for the wings
-  s.homeLen = Math.min(9000, Math.max(300, Math.ceil(p.length * 3 / 100) * 100, Math.ceil((s.roll * 1.35 + 200) / 100) * 100));
   s.rwyLen = Math.min(9000, Math.max(400, Math.ceil(p.length * 4 / 100) * 100, Math.ceil((s.landRoll * 2.4 + 300) / 100) * 100));
+  // home is long enough to take off, and also to land back on (power loss, free fly)
+  s.homeLen = Math.min(9000, Math.max(s.rwyLen, Math.ceil((s.roll * 1.35 + 200) / 100) * 100));
   s.rwyWid = s.span > 80 ? Math.min(260, Math.round(s.span * 0.7 / 5) * 5) : s.span > 40 ? 60 : s.span > 20 ? 45 : 30;
   return s;
 }
 
 // landing speed goes up where the air is thin (high airfields)
 function approachSpeed(s, h) { return s.vStallF * 1.3 * Math.sqrt(RHO0 / (RHO0 * Math.exp(-Math.max(0, h) / 8500))); }
-function mach(v, s) {
+// speed of sound: 340 m/s at sea level, falling with the temperature to about 295 m/s above 11 km
+function soundSpeed(h) { return 20.05 * Math.sqrt(Math.max(216.65, 288.15 - 0.0065 * Math.max(0, h || 0))); }
+function mach(v, s, h) {
   if (s && s.supersonic) {   // drag spike through the sound barrier, then steady wave drag once supersonic
-    const M = v / 340, up = Math.max(0, Math.min(1, (M - 0.9) / 0.25));
+    const M = v / soundSpeed(h), up = Math.max(0, Math.min(1, (M - 0.9) / 0.25));
     return s.transCd * Math.exp(-Math.pow((M - 1.02) / 0.12, 2)) + s.waveCd * up * up * (3 - 2 * up);
   }
   return v > 200 ? 0.1 * Math.pow((v - 200) / 40, 2) : 0;
 }
-function thrust(s, v, throttle, rho) {
-  if (s.supersonic) return s.thrust0 * throttle * Math.pow(rho / RHO0, 0.75) * (1 + 0.5 * Math.min(v / 340, 2.2));
+function thrust(s, v, throttle, rho, h) {
+  if (s.supersonic) return s.thrust0 * throttle * Math.pow(rho / RHO0, 0.75) * (1 + 0.5 * Math.min(v / soundSpeed(h), 2.2));
   if (s.jet) return s.thrust0 * throttle * Math.pow(rho / RHO0, 0.75) * Math.max(0.3, 1 - v / 600);
-  return ETA * s.power * 1000 * throttle * (rho / RHO0) / Math.max(v, s.vref);
+  // propeller: thrust = efficiency x power / speed, but a propeller can't make unlimited thrust standing still,
+  // so below vThrustMin (a per-plane speed, not the aviation 'Vref') thrust stops growing
+  return ETA * s.power * 1000 * throttle * (rho / RHO0) / Math.max(v, s.vThrustMin);
 }
 
 function coeffs(s, alphaDeg, flaps) {
@@ -115,8 +134,7 @@ function rwPt(r, a, c) { const s = Math.sin(r.hdg), co = Math.cos(r.hdg); return
 function rwLocal(r, e, n) { const s = Math.sin(r.hdg), co = Math.cos(r.hdg), de = e - r.e, dn = n - r.n; return [de * s + dn * co, de * co - dn * s]; }
 
 function makeMissionWorld(s, seed) {
-  let r = seed || (Math.random() * 1e9) | 0;
-  const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
+  const rnd = makeRng(seed);
   const home = s.homeLen, rl = s.rwyLen;
   const pp = pathParams(s), wid = s.rwyWid;
   const start = Math.max(3500, home + 2500, Math.min(home, s.roll) + pp.cruise / Math.tan(pp.climb) + finalLen(s) + 4000);
@@ -147,23 +165,22 @@ function makeMissionWorld(s, seed) {
 // ---------- Situation maps ----------
 function seaWorld(runways, target, landAt, extra) {
   const water = (e, n) => !landAt(e, n);
-  const raw = (e, n) => { for (const w of runways) if (w.kind === 'carrier') { const [a, c] = rwLocal(w, e, n); if (a > -20 && a < w.len + 15 && Math.abs(c) < w.wid / 2 + 12) return w.elev; } return 0; };
+  const raw = (e, n) => { for (const w of runways) if (w.kind === 'carrier' && onStrip(w, e, n)) return w.elev; return 0; };   // the deck: same rectangle runwayAt() uses
   return Object.assign({ runways, target, home: runways[0], water, raw, seaBase: true }, extra || {});
 }
 function makeSituationWorld(s, id, seed) {
-  let r = seed || (Math.random() * 1e9) | 0;
-  const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
+  const rnd = makeRng(seed);
   const wid = s.rwyWid, Ff = finalLen(s), pp = pathParams(s);
   let w;
   if (id === 'normal') {
-    w = makeMissionWorld(s, seed); w.runways = w.runways.filter(x => x.kind !== 'fake');
+    w = makeMissionWorld(s, subSeed(seed, 1)); w.runways = w.runways.filter(x => x.kind !== 'fake');
     w.target.name = 'Lowmoor Regional';
   } else if (id === 'ocean') {
     const home = { e: 0, n: 0, hdg: 0, len: s.homeLen, wid: 30, kind: 'home', name: 'Gull Island', elev: 0 };
     const boat = { e: 900, n: 9000, hdg: 0, len: 500, wid: 120, kind: 'boat', name: 'rescue boat', elev: 0, num: '--' };
     w = seaWorld([home, boat], boat, (e, n) => Math.hypot(e, n - s.homeLen / 2) < 900, { start: { e: 0, n: 3200, h: Math.min(900, s.ceiling - 60), psi: 0, v: 50, engineOut: 4 } });
   } else if (id === 'himalaya') {
-    w = makeMountainWorld(s, seed, { elev: 2300, ceilExtra: 600, peakMin: 350, peakRange: 1000, peaks: 95, lenMul: 1.7, names: ['Tiger Ridge (Paro-style valley)', 'Snow Leopard Field', 'Lhotse Valley Strip'] });
+    w = makeMountainWorld(s, subSeed(seed, 2), { elev: 2300, ceilExtra: 600, peakMin: 350, peakRange: 1000, peaks: 95, lenMul: 1.7, names: ['Tiger Ridge (Paro-style valley)', 'Snow Leopard Field', 'Lhotse Valley Strip'] });
     const p0 = [Math.sin(Math.atan2(w.faf[0], w.faf[1])) * 0, 0];
     const L = Math.hypot(w.faf[0], w.faf[1]), ux = w.faf[0] / L, uy = w.faf[1] / L;
     w.start = { e: ux * L * 0.35, n: uy * L * 0.35, h: w.cruiseC, psi: Math.atan2(ux, uy), v: Math.max(s.vStall * 1.5, 110) };
@@ -186,12 +203,11 @@ function makeSituationWorld(s, id, seed) {
 // ---------- Random situations: a type, a map and a plane ----------
 const NEW_TYPES = ['fuel', 'short', 'wind', 'power', 'medical'], NEW_MAPS = ['desert', 'arctic', 'night'];
 function makeRandomSituation(s, type, map, seed) {
-  let r = (seed || 1) ^ 0x5bd1e995;
-  const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
+  const rnd = makeRng(subSeed(seed, 3));
   const NM = { desert: ['Red Mesa Strip', 'Canyon Point', 'Dust Devil Field'], arctic: ['Polar Station Kilo', 'Icefjord', 'Snowcap Field'], night: ['Metro City International', 'Harbour Lights', 'Skyline Field'] }[map];
   let w;
-  if (map === 'desert') { w = makeMountainWorld(s, seed, { elev: Math.round(120 + rnd() * 140), peakMin: 90, peakRange: 380, peaks: 60, names: NM }); }
-  else { w = makeMissionWorld(s, seed); w.runways = w.runways.filter(x => x.kind !== 'fake'); w.target.name = NM[Math.floor(rnd() * NM.length)]; }
+  if (map === 'desert') { w = makeMountainWorld(s, subSeed(seed, 4), { elev: Math.round(120 + rnd() * 140), peakMin: 90, peakRange: 380, peaks: 60, names: NM }); }
+  else { w = makeMissionWorld(s, subSeed(seed, 5)); w.runways = w.runways.filter(x => x.kind !== 'fake'); w.target.name = NM[Math.floor(rnd() * NM.length)]; }
   w.theme = map; w.mode = 'situation'; w.situation = 'random'; w.sitType = type; w.map = map;
   const tg = w.target, pp = pathParams(s), Ff = finalLen(s);
   const route = Math.hypot(tg.e, tg.n) + Ff, cruiseV = Math.max(s.vStall * 1.35, Math.min(s.vMax * 0.6, s.vStall * 1.6));
@@ -216,8 +232,7 @@ function safeGround(world, e, n, gnd) { return gnd <= 20 || world.runways.some(w
 
 // Free fly: open airfields all around, land anywhere
 function makeFreeWorld(s, seed) {
-  let r = seed || (Math.random() * 1e9) | 0;
-  const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
+  const rnd = makeRng(seed);
   const rl = s.rwyLen, wid = s.rwyWid, scale = Math.max(1, rl / 1000);
   const names = ['Kestrel Field', 'Marsh End', 'Hollow Down', 'Ridgeway', 'Saltings', 'Fenwick', 'Old Quarry', 'Brackenmoor', 'Wethercombe', 'Lark Rise', 'Mill Green', 'Copper Beech'];
   const runways = [{ e: 0, n: 0, hdg: 0, len: s.homeLen, wid: Math.max(30, wid), kind: 'home', name: 'Home field' }];
@@ -235,8 +250,7 @@ function makeFreeWorld(s, seed) {
 // Challenge: the target sits on a plateau in the mountains, reached through a valley
 function makeMountainWorld(s, seed, opt) {
   opt = opt || {};
-  let r = seed || (Math.random() * 1e9) | 0;
-  const rnd = () => { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; };
+  const rnd = makeRng(seed);
   const pp = pathParams(s), rl = s.rwyLen, wid = s.rwyWid, Ff = finalLen(s);
   const Hr = opt.elev || Math.round(300 + rnd() * 200), cruiseC = pp.cruise + Hr, ceil = s.ceiling + Hr + (opt.ceilExtra || 0);
   const lift = Math.min(s.homeLen, s.roll);
@@ -279,41 +293,60 @@ function makeMountainWorld(s, seed, opt) {
     return Math.max(0, H);
   };
   const cache = new Map();
-  const terrain = (e, n) => { const k = e + ',' + n; let v = cache.get(k); if (v === undefined) { v = raw(e, n); if (cache.size > 300000) cache.clear(); cache.set(k, v); } return v; };
+  // for drawing: heights on a 4 m grid, so nearby lookups share one calculation (the physics uses raw() directly)
+  const terrain = (e, n) => { const qe = Math.round(e / 4) * 4, qn = Math.round(n / 4) * 4, k = qe * 1e6 + qn; let v = cache.get(k); if (v === undefined) { v = raw(qe, qn); if (cache.size > 300000) cache.clear(); cache.set(k, v); } return v; };
   for (const w of [home, tgt]) w.num = rwNum(w.hdg);
   return { runways: [home, tgt], target: tgt, home, mode: 'challenge', terrain, raw, elev: Hr, ceilAdd: Hr + (opt.ceilExtra || 0), peaks, faf, cruiseC };
 }
+function onStrip(w, e, n) { const [a, c] = rwLocal(w, e, n); return a >= -5 && a <= w.len + 5 && Math.abs(c) <= w.wid / 2 + 4; }
 function runwayAt(world, e, n) {
-  return world.runways.find(w => { if (w.kind === 'boat') return false; const [a, c] = rwLocal(w, e, n); return a >= -5 && a <= w.len + 5 && Math.abs(c) <= w.wid / 2 + 4; }) || null;
+  return world.runways.find(w => w.kind !== 'boat' && onStrip(w, e, n)) || null;
 }
 function finalLen(s) { const pp = pathParams(s); return Math.max(6000, Math.min(14000, 1.3 * pp.cruise / Math.tan(pp.gs))); }
 
-function newFlight(s, world) {
+function newFlight(s, world, seed) {
   return { x: 0, e: 0, n: 0, psi: 0, phi: 0, h: 0, vx: 0, vy: 0, theta: 0, throttle: 0, flaps: 1, flapSet: 1, brake: 0, fuel: s.fuel, ground: true, world,
-    flew: false, t: 0, maxH: 0, maxV: 0, maxN: 1, gust: 0, stalled: false, n_: 1, nLoad: 1, alpha: 0, touchVy: 0, result: null };
+    flew: false, t: 0, maxH: 0, maxV: 0, maxN: 1, gust: 0, stalled: false, n_: 1, nLoad: 1, alpha: 0, touchVy: 0, result: null,
+    slip: 0, scrape: 0, rng: makeRng(subSeed(seed, 9)) };
 }
+// angle between a heading and a runway, ignoring which end you land from (0 = lined up)
+function lineUp(psi, rw) { const d = Math.abs(wrap(psi - rw.hdg)) / DEG; return Math.min(d, 180 - d); }
 
+// One physics step. f.vx is the speed along the nose (through the air when flying, over the ground when rolling),
+// f.vy the climb rate. f.slip is how far the nose points away from where the plane moves through the air (rudder).
 function stepFlight(f, s, input, dt) {
   if (f.result) return;
-  const mass = s.dry + f.fuel, pc = s.pitch;
-  const v = Math.hypot(f.vx, f.vy);
-  const gamma = v > 1 ? Math.atan2(f.vy, f.vx) / DEG : 0;
+  const rnd = f.rng || Math.random;
+  const mass = s.dry + f.fuel, pc = s.pitch, W = f.world.wind;
+  // on the ground a headwind already blows over the wings, so lift and drag use airspeed, not ground speed
+  const windAlong = f.ground && W ? W[0] * Math.sin(f.psi) + W[1] * Math.cos(f.psi) : 0;
+  const vxA = f.vx - windAlong;
+  const v = Math.hypot(vxA, f.vy);
+  const gamma = v > 1 ? Math.atan2(f.vy, vxA) / DEG : 0;
   const auth = Math.min(1, Math.max(0.15, v / 35)) * Math.pow(Math.min(1, 90 / Math.max(v, 1)), 0.6);
-  const roll = input.roll || 0;
-  const ceil = s.ceiling + (f.world.ceilAdd || 0);
-  if (f.h > ceil - 40 && input.pitch > 0) input = { ...input, pitch: 0 };   // max height: nose-up is ignored
+  let roll = input.roll || 0;
+  const ceil = s.ceiling + (f.world.ceilAdd || 0), hPrev = f.h;
+  // close to the ground Left/Right work the rudder: they swing the nose without banking (to line up for touchdown)
+  const rudder = !f.ground && !s.aero && (f.agl ?? f.h) < 15 && f.flew;
 
   if (f.ground) {
     if (input.pitch) f.theta += input.pitch * pc.rate * auth * dt;
     else f.theta -= Math.sign(f.theta) * Math.min(Math.abs(f.theta), 8 * dt);
-    f.theta = Math.max(0, Math.min(13, f.theta));
-    f.phi = 0;
+    // the tail touches the runway at s.tailStrike; holding the nose up past it scrapes the tail
+    if (f.theta >= s.tailStrike) {
+      f.theta = s.tailStrike;
+      if (input.pitch > 0 && f.vx > 15) f.scrape += dt; else f.scrape = Math.max(0, f.scrape - dt);
+      if (f.scrape > 0.5) { f.result = { kind: 'crash', why: `Tail strike! You pulled the nose up too far (${s.tailStrike.toFixed(0)}°) on the runway. Ease the nose up gently at lift-off speed.` }; return; }
+    } else f.scrape = Math.max(0, f.scrape - dt);
+    f.tailWarn = f.theta > s.tailStrike - 2 && f.vx > 15 && !s.aero;
+    f.theta = Math.max(0, f.theta);
+    f.phi = 0; f.slip = 0;
     if (f.vx > 0.5) f.psi = wrap(f.psi + roll * Math.max(3, Math.min(25, 25 * 15 / f.vx)) * DEG * dt);
   } else {
-    const turb = f.world.turb || 1;
-    f.gust += (-f.gust * 1.5 + (Math.random() - 0.5) * pc.gust * 90 * turb) * dt;
-    if (turb > 1) f.vy += (Math.random() - 0.5) * (turb - 1) * 9 * dt;
-    // stunt planes: "nose up" is relative to the pilot, so upside down it pushes the nose towards the ground
+    const turb = f.world.turb || 1, sq = Math.sqrt(dt);
+    // gusts are random noise: their size grows with the square root of the step, so every frame rate feels the same
+    f.gust += -f.gust * 1.5 * dt + (rnd() - 0.5) * pc.gust * 5.8 * turb * sq;
+    if (turb > 1) f.vy += (rnd() - 0.5) * (turb - 1) * 0.58 * sq;
     if (s.aero) {
       // stunt plane: the stick asks for a wing angle, from a hard push to just short of the stall, so loops stay clean
       const rho0 = RHO0 * Math.exp(-Math.max(0, f.h) / 8500), qq = 0.5 * rho0 * Math.max(v, 15) ** 2;
@@ -323,10 +356,14 @@ function stepFlight(f, s, input, dt) {
       f.theta += wrapDeg(target - f.theta) * Math.min(1, 7 * dt) + f.gust * dt * 0.3;
     } else f.theta += (input.pitch || 0) * pc.rate * auth * dt
       + wrapDeg(gamma - f.theta) * pc.k * (input.pitch ? 0.25 : 1) * auth * dt + f.gust * dt;
+    const kick = rudder && roll;
+    if (kick) { const d = Math.max(-30, Math.min(30, f.slip + roll * 20 * dt)) - f.slip; f.psi = wrap(f.psi + d * DEG); f.slip += d; roll = 0; }
     if (roll) { f.phi += roll * s.rollRate * dt; if (s.aero) f.rollAcc = (f.rollAcc || 0) + roll * s.rollRate * dt; }
     else if (!s.aero || Math.abs(f.phi) < 40) f.phi -= Math.sign(f.phi) * Math.min(Math.abs(f.phi), s.rollRate * 0.6 * dt);
+    if (!kick) { const back = f.slip * Math.min(1, 1.2 * dt); f.slip -= back; f.psi = wrap(f.psi - back * DEG); }   // rudder centred: the nose swings back in line with the air
+    // a real stall: the nose drops and a wing goes down
+    if (f.stalled && !s.aero) { f.theta -= 5 * dt; if (!f.dropDir) f.dropDir = rnd() < 0.5 ? -1 : 1; f.phi += f.dropDir * 14 * dt; } else f.dropDir = 0;
     if (s.aero) f.phi = wrapDeg(f.phi); else f.phi = Math.max(-s.maxBank, Math.min(s.maxBank, f.phi));
-    if (f.h > ceil - 40 && f.theta > Math.max(0, gamma) + 2) f.theta -= 10 * dt;   // max height: ease the nose down
     if (!s.aero) f.theta = Math.max(-60, Math.min(60, f.theta));
   }
 
@@ -335,43 +372,54 @@ function stepFlight(f, s, input, dt) {
   const rho = RHO0 * Math.exp(-Math.max(0, f.h) / 8500);
   const q = 0.5 * rho * v * v;
   const c = coeffs(s, alpha, f.flaps);
-  const L = q * s.S * c.cl * (f.brake && f.ground ? 0.4 : 1), D = q * s.S * (c.cd + mach(v, s) + f.brake * (s.brakeCd || 0.06));
+  // ground effect: within about one wingspan of the ground the wing makes less induced drag and a little more lift
+  const hb = Math.max(0, f.ground ? 0 : (f.agl ?? f.h)) / s.span, ge = hb < 1 ? Math.pow(16 * hb, 2) / (1 + Math.pow(16 * hb, 2)) : 1;
+  const cdi = c.cl * c.cl / (Math.PI * OSWALD * s.AR);
+  const L = q * s.S * c.cl * (f.brake && f.ground ? 0.4 : 1) * (1 + 0.06 * Math.max(0, 1 - hb));
+  const D = q * s.S * (c.cd - cdi * (1 - ge) + mach(v, s, f.h) + f.brake * (s.brakeCd || 0.06) + 0.0006 * Math.abs(f.slip));
   const Lv = L * Math.cos(f.phi * DEG), Lh = L * Math.sin(f.phi * DEG);
-  const ceilFade = Math.max(0.5, Math.min(1, (ceil - f.h) / 80));
+  // max height: the engines fade smoothly over the last 250 m as the air gets too thin (no invisible wall)
+  const ceilFade = Math.max(0, Math.min(1, (ceil + 50 - f.h) / 250));
   const ab = f.ab && s.abMult ? s.abMult : 1;
   if (f.world.powerLoss && f.flew && !f.powerMul && f.agl > f.world.powerLoss.agl) f.powerMul = f.world.powerLoss.mul;
-  let T = f.fuel > 0 && !f.engineOut ? thrust(s, v, f.throttle, rho) * ceilFade * ab * (f.powerMul || 1) : 0;
+  let T = f.fuel > 0 && !f.engineOut ? thrust(s, v, f.throttle, rho, f.h) * ceilFade * ab * (f.powerMul || 1) : 0;
   if (f.reverse && f.ground && f.fuel > 0) T = -0.55 * thrust(s, Math.max(v, 1), Math.max(f.throttle, 0.6), rho);   // reverse thrust: engines push backwards
-  const ux = v > 0.5 ? f.vx / v : 1, uy = v > 0.5 ? f.vy / v : 0;
+  const ux = v > 0.5 ? vxA / v : 1, uy = v > 0.5 ? f.vy / v : 0;
   const th = f.theta * DEG;
   let Fx = T * Math.cos(th) - D * ux - Lv * uy;
   let Fy = T * Math.sin(th) - D * uy + Lv * ux - mass * G;
 
+  const wasGround = f.ground;
   if (f.ground) {
     if (Fy <= 0) {
       const N = -Fy; Fy = 0;
       const onR = runwayAt(f.world, f.e, f.n);
       let mu = onR ? 0.03 : 0.12;
       if (onR && onR.arrest && f.flew) mu += 2.6;   // arrestor wire
-      if ((f.throttle === 0 || f.brake || f.reverse) && f.flew) mu += 0.4;
+      if (f.brake || f.reverse || (f.throttle === 0 && f.flew)) mu += 0.4;   // brakes work any time; after landing, idle throttle brakes too
       if (f.vx > 0) Fx -= Math.min(mu * N, f.vx * mass / dt + Fx);
     } else f.ground = false;
   }
 
   f.vx += Fx / mass * dt; f.vy += Fy / mass * dt;
   if (f.ground) { f.vy = 0; if (f.vx < 0) f.vx = 0; }
+  if (wasGround && !f.ground) {
+    // lift-off: from now on f.vx is airspeed. With wind, the air moves past at an angle, so the nose is slightly off the air path
+    if (W) { const ge0 = f.vx * Math.sin(f.psi) - W[0], gn0 = f.vx * Math.cos(f.psi) - W[1]; f.vx = Math.hypot(ge0, gn0); f.slip = Math.max(-20, Math.min(20, wrap(f.psi - Math.atan2(ge0, gn0)) / DEG)); }
+  }
   if (!f.ground && f.vx > 5) f.psi = wrap(f.psi + Lh / (mass * f.vx) * dt);
   // past the vertical in a loop: describe the same attitude facing the other way (heading +180, pitch mirrored, rolled over)
   if (s.aero && !f.ground && f.vx < -1) {
     f.psi = wrap(f.psi + Math.PI); f.theta = wrapDeg(180 - f.theta); f.phi = wrapDeg(f.phi + 180); f.vx = -f.vx;
     f.halfLoops = (f.halfLoops || 0) + 1; f.lastHalf = f.t;
   }
+  const chi = f.psi - f.slip * DEG;   // the direction the plane actually moves through the air
   f.x += f.vx * dt; f.h += f.vy * dt;
-  f.e += f.vx * Math.sin(f.psi) * dt; f.n += f.vx * Math.cos(f.psi) * dt;
-  if (f.world.wind && !f.ground) { f.e += f.world.wind[0] * dt; f.n += f.world.wind[1] * dt; }
+  if (f.ground) { f.e += f.vx * Math.sin(f.psi) * dt; f.n += f.vx * Math.cos(f.psi) * dt; }
+  else { f.e += f.vx * Math.sin(chi) * dt; f.n += f.vx * Math.cos(chi) * dt; if (W) { f.e += W[0] * dt; f.n += W[1] * dt; } }
   if (f.world.leak && f.fuel > 0) f.fuel = Math.max(0, f.fuel - f.world.leak * dt);
-  f.atCeil = f.h > ceil - 40;
-  if (f.h > ceil) { f.h = ceil; if (f.vy > 0) f.vy = 0; }
+  f.atCeil = f.h > ceil - 60;
+  if (f.h > ceil + 150) { f.h = ceil + 150; if (f.vy > 0) f.vy = 0; }   // safety net only; the engines have faded long before this
   const gnd = groundAt(f.world, f.e, f.n); f.gnd = gnd; f.agl = f.h - gnd;
   if (f.ground && f.world.water && f.world.water(f.e, f.n) && !runwayAt(f.world, f.e, f.n)) { f.result = { kind: 'crash', why: 'You rolled off the end into the water. Next time land nearer the start and use the brakes.' }; return; }
   if (f.ground) { f.h = gnd; f.agl = 0; if (!safeGround(f.world, f.e, f.n, gnd)) { f.result = { kind: 'crash', why: 'Rolled off the runway and down the mountainside.' }; return; } }
@@ -383,10 +431,15 @@ function stepFlight(f, s, input, dt) {
   f.maxH = Math.max(f.maxH, f.h); f.maxV = Math.max(f.maxV, v);
 
   if (!f.ground && f.nLoad > s.nlim) { f.result = { kind: 'crash', why: `The wings snapped at ${f.nLoad.toFixed(1)} g. This wing is rated to ${s.nlim.toFixed(1)} g.` }; return; }
+  if (!f.ground && f.nLoad < s.nlimNeg) { f.result = { kind: 'crash', why: `The wings snapped pushing over at ${f.nLoad.toFixed(1)} g. Wings are weaker pushed down than pulled up (this one takes ${s.nlimNeg.toFixed(1)} g).` }; return; }
+
+  // flying into the side of the carrier is not a deck landing
+  const here = runwayAt(f.world, f.e, f.n);
+  if (!f.ground && here && here.kind === 'carrier' && hPrev < here.elev - 1) { f.result = { kind: 'crash', why: 'You flew into the side of the aircraft carrier. Stay on the green line: it brings you over the back of the deck, not into the hull.' }; return; }
 
   if (f.h <= gnd && !f.ground) {
     f.h = gnd; f.touchVy = -f.vy;
-    if (f.world.water && f.world.water(f.e, f.n) && !runwayAt(f.world, f.e, f.n)) {
+    if (f.world.water && f.world.water(f.e, f.n) && !here) {
       const gentle = f.touchVy < 2.5 && Math.abs(f.phi) < 12 && v < s.vStall * 1.6 && f.theta > -3;
       const near = f.world.target.kind === 'boat' && Math.hypot(f.e - f.world.target.e, f.n - f.world.target.n) < 1500;
       f.result = gentle ? { kind: 'ditched', why: `Smooth water landing at ${Math.round(v * 3.6)} km/h, sinking ${f.touchVy.toFixed(1)} m/s. ${near ? 'Right next to the rescue boat, everyone is safe!' : 'You climb out and a rescue boat picks you up.'}` }
@@ -394,32 +447,42 @@ function stepFlight(f, s, input, dt) {
       return;
     }
     if (!safeGround(f.world, f.e, f.n, gnd)) { f.result = { kind: 'crash', why: `You flew into the mountainside at ${Math.round(gnd)} m. Watch the terrain warning and the height map.` }; return; }
-    const deck = runwayAt(f.world, f.e, f.n), sinkMax = deck && deck.arrest ? 7.5 : 4;
-    if (f.vy < -sinkMax) { f.result = { kind: 'crash', why: `Hit the ${deck && deck.arrest ? 'deck' : 'ground'} at ${(-f.vy).toFixed(1)} m/s descent. The landing gear survives up to ${sinkMax} m/s.` }; return; }
+    const sinkMax = here && here.arrest ? 7.5 : s.sinkMax;
+    if (f.vy < -sinkMax) { f.result = { kind: 'crash', why: `Hit the ${here && here.arrest ? 'deck' : 'ground'} at ${(-f.vy).toFixed(1)} m/s descent. This plane's landing gear survives up to ${sinkMax} m/s.` }; return; }
     if (f.theta < -4) { f.result = { kind: 'crash', why: 'Touched down nose-first. Raise the nose a little just before landing.' }; return; }
     if (Math.abs(f.phi) > 12) { f.result = { kind: 'crash', why: `A wingtip hit the ground (banked ${Math.abs(f.phi).toFixed(0)}°). Level the wings before touching down.` }; return; }
-    if (f.world.wind) { const W = f.world.wind, ge = f.vx * Math.sin(f.psi) + W[0], gn = f.vx * Math.cos(f.psi) + W[1]; f.psi = Math.atan2(ge, gn); f.vx = Math.hypot(ge, gn); }   // kick out the crab: point the nose down the runway
-    f.ground = true; f.vy = 0; f.phi = 0; if (f.theta < 0) f.theta = 0;
+    // the wheels only roll the way the nose points: any sideways movement over the ground has to be scrubbed off
+    const ge1 = f.vx * Math.sin(chi) + (W ? W[0] : 0), gn1 = f.vx * Math.cos(chi) + (W ? W[1] : 0);
+    const along = ge1 * Math.sin(f.psi) + gn1 * Math.cos(f.psi), side = ge1 * Math.cos(f.psi) - gn1 * Math.sin(f.psi);
+    f.touchSide = side;
+    if (Math.abs(side) > 6) { f.result = { kind: 'crash', why: `Touched down sliding sideways at ${Math.round(Math.abs(side) * 3.6)} km/h and the plane spun off the runway. In a crosswind, use Left/Right just before touchdown to point the nose straight down the runway.` }; return; }
+    f.ground = true; f.vy = 0; f.phi = 0; f.slip = 0; f.vx = Math.max(0, along); if (f.theta < 0) f.theta = 0;
+    // remember where the wheels first touched: that is what counts for the landing
+    f.td = { rw: here, ang: here ? lineUp(f.psi, here) : 90, t: f.t };
   }
   if (f.ground) {
     const sp = Math.hypot(f.vx, f.vy);
     if (f.flew && sp < 1 && f.world.free) {
-      const w = runwayAt(f.world, f.e, f.n);
-      f.landings = (f.landings || 0) + 1; f.lastLand = { name: w ? w.name + ' (runway ' + w.num + ')' : 'a field', t: f.t, sink: f.touchVy }; f.flew = false;
+      const w = runwayAt(f.world, f.e, f.n), td = f.td && f.td.rw;
+      const onRw = w && td === w && f.td.ang < 20;
+      f.landings = (f.landings || 0) + 1; f.lastLand = { name: onRw ? w.name + ' (runway ' + w.num + ')' : 'a field', rw: onRw ? w : null, t: f.t, sink: f.touchVy }; f.flew = false;
     }
     else if (f.flew && sp < 1) {
-      const w = runwayAt(f.world, f.e, f.n), tg = f.world.target;
+      const w = runwayAt(f.world, f.e, f.n), tg = f.world.target, td = f.td || { rw: null, ang: 90 };
       const km = (Math.hypot(f.e - tg.e, f.n - tg.n) / 1000).toFixed(2) + ' km from';
-      if (w && w.kind === 'carrier' && w === tg) f.result = { kind: 'win', why: `Trap! You caught the arrestor wire and stopped on the carrier deck. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
-      else if (w && w === tg && f.world.mode === 'situation' && f.world.situation === 'himalaya') f.result = { kind: 'win', why: `You landed in the Himalayas at ${tg.name}, ${tg.elev} m up! Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
-      else if (w && w === tg && f.world.timeLimit && f.t > f.world.timeLimit) f.result = { kind: 'landed', why: `You landed at ${tg.name}, but ${Math.round(f.t - f.world.timeLimit)} s too late. Fly faster and take the shortest route.` };
-      else if (w && (w.kind === 'target' || w === tg)) f.result = { kind: 'win', why: f.world.mode === 'challenge' ? `You landed in the mountains! Runway ${tg.num} at ${tg.name}, ${tg.elev} m up. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` : `You stopped on runway ${tg.num} at ${tg.name}. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
-      else if (w && w.kind === 'fake') f.result = { kind: 'decoy', why: `That was a closed decoy strip, ${km} the real target.` };
+      const onTarget = w === tg && td.rw === tg && td.ang < 20;
+      if (w === tg && td.rw !== tg) f.result = { kind: 'landed', why: `You touched down ${td.rw ? 'on ' + td.rw.name : 'off the runway'} and rolled onto ${tg.name}. A landing only counts when the wheels touch the runway itself.` };
+      else if (w === tg && td.ang >= 20) f.result = { kind: 'landed', why: `You touched down across the runway (${Math.round(td.ang)}° off). Line up with the centre line before landing.` };
+      else if (onTarget && w.kind === 'carrier') f.result = { kind: 'win', why: `Trap! You caught the arrestor wire and stopped on the carrier deck. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
+      else if (onTarget && f.world.mode === 'situation' && f.world.situation === 'himalaya') f.result = { kind: 'win', why: `You landed in the Himalayas at ${tg.name}, ${tg.elev} m up! Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
+      else if (onTarget && f.world.timeLimit && f.t > f.world.timeLimit) f.result = { kind: 'landed', why: `You landed at ${tg.name}, but ${Math.round(f.t - f.world.timeLimit)} s too late. Fly faster and take the shortest route.` };
+      else if (onTarget) f.result = { kind: 'win', why: f.world.mode === 'challenge' ? `You landed in the mountains! Runway ${tg.num} at ${tg.name}, ${tg.elev} m up. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` : `You stopped on runway ${tg.num} at ${tg.name}. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
+      else if (td.rw && td.rw.kind === 'fake') f.result = { kind: 'decoy', why: `That was a closed decoy strip, ${km} the real target.` };
       else if (w) f.result = { kind: 'landed', why: 'Safe landing back at the home field. The target is still out there.' };
       else f.result = { kind: 'landed', why: `Safe landing in a field, ${km} the target runway.` };
     }
     else if (!f.flew && !f.world.free && f.x > 60 && !runwayAt(f.world, f.e, f.n)) f.result = { kind: 'fail', why: 'Ran off the runway without lifting off.' };
-    else if (!f.flew && !f.landings && sp < 0.5 && f.t > 20 && f.throttle > 0.9) f.result = { kind: 'fail', why: 'Not enough thrust to get rolling.' };
+    else if (!f.flew && !f.landings && sp < 0.5 && f.t > 20 && f.throttle > 0.9 && !f.brake) f.result = { kind: 'fail', why: 'Not enough thrust to get rolling.' };
   }
 }
 
@@ -466,7 +529,8 @@ function guide(f, s) {
   else if (f.x < tocOdo && f.h < cr - 20) phase = 'climb';
   else phase = 'cruise';
   if (phase === 'cruise' && Math.abs(f.h - cr) < 15) want = 0;
+  if (captured && phase === 'approach') want = Math.max(want, -gsDeg * 1.6);   // never dive steeply at the runway: too fast a sink rate can't be flared
   want = Math.max(-8, Math.min(climbDeg, want));
   return { want, gamma, phase, turn, wantHdg, dtg, todDist, tocOdo, lift, alt, cruise: cr, Hr, gsDeg, climbDeg, captured, along, cross, faf, Ff };
 }
-if (typeof module !== 'undefined') module.exports = { makeRandomSituation, NEW_TYPES, NEW_MAPS, approachSpeed, makeSituationWorld, mach, thrust, coeffs, specs, newFlight, stepFlight, makeWorld, runwayAt, guide, rwPt, rwLocal, wrap, DEG, groundAt, safeGround };
+if (typeof module !== 'undefined') module.exports = { soundSpeed, makeRng, subSeed, lineUp, pathParams, finalLen, makeRandomSituation, NEW_TYPES, NEW_MAPS, approachSpeed, makeSituationWorld, mach, thrust, coeffs, specs, newFlight, stepFlight, makeWorld, runwayAt, guide, rwPt, rwLocal, wrap, DEG, groundAt, safeGround };
