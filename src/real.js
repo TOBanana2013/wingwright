@@ -89,6 +89,55 @@ const REAL = {
     tail: 'large', shape: 'rounded', material: 'alu', sweep: 30, wing: 'high', twinFin: true },
   b121: { name: 'B-121 Sky Fortress', role: 'Giant bomber (made up for the game)', year: 0, fixed: true, madeUp: true, freeOnly: true, span: 350, S: 18000, length: 304.8, width: 22, height: 24.4, finH: 7.6,
     mass: 5000000, fuel: 1000000, engine: 'jet', thrust: 15000000, jets: 24, pods: [0.12, 0.22, 0.32, 0.42, 0.52, 0.62].map(y => ({ y, w: 7, l: 18 })), cd0: 0.02, nlim: 3.75, clmax: 1.5, flapCl: 0.8, incidence: 3,
-    tail: 'large', shape: 'boxy', material: 'carbon', sweep: 30, taper: 0.3, wing: 'high', ceiling: 9000, maxBank: 35 }
+    tail: 'large', shape: 'boxy', material: 'carbon', sweep: 30, taper: 0.3, wing: 'high', ceiling: 9000, maxBank: 35 },
+  // B-121 family: same giant airframe, three full decks inside. The B is a flying presidential palace; the C carries passengers.
+  // Their deck plans (INTERIOR, below) are built for a future walk-around mode; for now the hangar shows them as a cutaway.
+  b121b: { name: 'B-121B Sky Palace', role: 'Three-deck presidential jet (made up for the game)', year: 0, fixed: true, madeUp: true, freeOnly: true, decks: 3, span: 330, S: 16000, length: 280, width: 22, height: 24.4, finH: 7.6,
+    mass: 3600000, fuel: 700000, engine: 'jet', thrust: 11000000, jets: 20, pods: [0.12, 0.22, 0.32, 0.42, 0.52].map(y => ({ y, w: 7, l: 18 })), cd0: 0.02, nlim: 3.75, clmax: 1.5, flapCl: 0.8, incidence: 3,
+    tail: 'large', shape: 'rounded', material: 'carbon', sweep: 30, taper: 0.3, wing: 'low', ceiling: 12000, maxBank: 35 },
+  b121c: { name: 'B-121C Sky Liner', role: 'Three-deck airliner (made up for the game)', year: 0, fixed: true, madeUp: true, freeOnly: true, decks: 3, span: 350, S: 18000, length: 304.8, width: 22, height: 24.4, finH: 7.6,
+    mass: 4200000, fuel: 800000, engine: 'jet', thrust: 12600000, jets: 24, pods: [0.12, 0.22, 0.32, 0.42, 0.52, 0.62].map(y => ({ y, w: 7, l: 18 })), cd0: 0.019, nlim: 3.75, clmax: 1.5, flapCl: 0.9, incidence: 3,
+    tail: 'large', shape: 'rounded', material: 'carbon', sweep: 30, taper: 0.3, wing: 'low', ceiling: 12000, maxBank: 35 }
 };
+
+// Deck plans. Each room is [name, from, to, kind] with from/to as fractions of the fuselage length, measured from the nose.
+// Seat rooms add { abreast, pitch } (seats across, metres per row) so the seat count comes from the room size.
+// kind: cockpit, office, suite, meet, staff, crew, galley, medical, seats, lounge, tech, cargo, stairs, lift
+const INTERIOR = {
+  b121b: { decks: [
+    { name: 'Upper deck', note: 'The President\'s deck', rooms: [
+      ['Flight deck', 0.03, 0.08, 'cockpit'], ['Pilots\' rest', 0.08, 0.12, 'crew'], ['Stairs', 0.12, 0.14, 'stairs'],
+      ['Presidential suite', 0.14, 0.26, 'suite'], ['President\'s office', 0.26, 0.34, 'office'], ['Conference room', 0.34, 0.44, 'meet'],
+      ['Situation room', 0.44, 0.52, 'meet'], ['Lift', 0.52, 0.54, 'lift'], ['Chief of staff', 0.54, 0.60, 'office'],
+      ['Senior advisers', 0.60, 0.70, 'staff'], ['Observation lounge', 0.70, 0.80, 'lounge'], ['Stairs', 0.80, 0.82, 'stairs'] ] },
+    { name: 'Main deck', note: 'Staff, guests and press', rooms: [
+      ['Galley', 0.04, 0.10, 'galley'], ['Stairs', 0.12, 0.14, 'stairs'], ['Dining room', 0.14, 0.22, 'lounge'], ['Medical centre', 0.22, 0.30, 'medical'],
+      ['Staff offices', 0.30, 0.42, 'staff'], ['Guest cabin', 0.42, 0.52, 'seats', { abreast: 6, pitch: 1.6 }], ['Lift', 0.52, 0.54, 'lift'],
+      ['Security team', 0.54, 0.60, 'crew'], ['Press cabin', 0.60, 0.70, 'seats', { abreast: 8, pitch: 1.0 }], ['Gym', 0.70, 0.76, 'lounge'],
+      ['Crew quarters', 0.76, 0.80, 'crew'], ['Stairs', 0.80, 0.82, 'stairs'], ['Rear galley', 0.82, 0.88, 'galley'] ] },
+    { name: 'Lower deck', note: 'Systems and cargo', rooms: [
+      ['Nose gear bay', 0.06, 0.12, 'tech'], ['Stairs', 0.12, 0.14, 'stairs'], ['Communications centre', 0.14, 0.26, 'tech'],
+      ['Computer room', 0.26, 0.32, 'tech'], ['Baggage hold', 0.32, 0.42, 'cargo'], ['Main gear bays', 0.42, 0.52, 'tech'], ['Lift', 0.52, 0.54, 'lift'],
+      ['Car garage', 0.54, 0.72, 'cargo'], ['Spare-parts store', 0.72, 0.80, 'cargo'], ['Stairs', 0.80, 0.82, 'stairs'], ['Rear cargo ramp', 0.82, 0.90, 'cargo'] ] }
+  ] },
+  b121c: { decks: [
+    { name: 'Upper deck', note: 'First class', rooms: [
+      ['Flight deck', 0.03, 0.08, 'cockpit'], ['Crew rest', 0.08, 0.11, 'crew'], ['Stairs', 0.11, 0.13, 'stairs'],
+      ['First class suites', 0.13, 0.33, 'seats', { abreast: 6, pitch: 2.4 }], ['Bar and lounge', 0.33, 0.39, 'lounge'], ['Galley', 0.39, 0.42, 'galley'],
+      ['Lift', 0.42, 0.44, 'lift'], ['First class suites', 0.44, 0.64, 'seats', { abreast: 6, pitch: 2.4 }], ['Sky deck view lounge', 0.64, 0.74, 'lounge'],
+      ['Stairs', 0.74, 0.76, 'stairs'] ] },
+    { name: 'Main deck', note: 'Business and premium economy', rooms: [
+      ['Galley', 0.05, 0.10, 'galley'], ['Stairs', 0.11, 0.13, 'stairs'], ['Business class', 0.13, 0.38, 'seats', { abreast: 10, pitch: 1.6 }],
+      ['Galley', 0.38, 0.42, 'galley'], ['Lift', 0.42, 0.44, 'lift'], ['Premium economy', 0.44, 0.74, 'seats', { abreast: 14, pitch: 1.0 }],
+      ['Stairs', 0.74, 0.76, 'stairs'], ['Galley', 0.76, 0.80, 'galley'], ['Premium economy', 0.80, 0.88, 'seats', { abreast: 14, pitch: 1.0 }] ] },
+    { name: 'Lower deck', note: 'Economy, with the cargo below the wing', rooms: [
+      ['Nose gear bay', 0.06, 0.11, 'tech'], ['Stairs', 0.11, 0.13, 'stairs'], ['Economy', 0.13, 0.36, 'seats', { abreast: 16, pitch: 0.8 }],
+      ['Cargo hold', 0.36, 0.42, 'cargo'], ['Lift', 0.42, 0.44, 'lift'], ['Main gear bays', 0.44, 0.54, 'tech'],
+      ['Economy', 0.54, 0.74, 'seats', { abreast: 16, pitch: 0.8 }], ['Stairs', 0.74, 0.76, 'stairs'], ['Baggage hold', 0.76, 0.88, 'cargo'] ] }
+  ] }
+};
+for (const k in INTERIOR) REAL[k].interior = INTERIOR[k];
+// seats in one room: whole rows that fit in its length, times seats per row
+REAL.seatsIn = (len, room) => room[4] ? Math.floor((room[2] - room[1]) * len / room[4].pitch) * room[4].abreast : 0;
+Object.defineProperty(REAL, 'seatsIn', { enumerable: false });
 if (typeof module !== 'undefined') module.exports = REAL;

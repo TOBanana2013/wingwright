@@ -208,6 +208,18 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
 .tab { font: 800 17px var(--f-display); text-transform: uppercase; letter-spacing: .05em; padding: 9px 6px; border: 0; background: var(--panel); color: var(--ink); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
 .fleet { display: flex; flex-direction: column; gap: 6px; }
+.inside { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.inside h3 { font-size: 15px; margin: 0 0 2px; } .inside .sum { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+.deckrow { margin-bottom: 8px; } .deckrow .dn { font-size: 12px; color: var(--muted); }
+.decks { overflow-x: auto; padding-bottom: 4px; } .decks > div { min-width: 760px; }
+.deckbar { position: relative; height: 46px; border: 1px solid var(--line); border-radius: 14px 4px 4px 14px; background: var(--grid); overflow: hidden; }
+.deckbar .rm { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--panel); font-size: 10px; line-height: 1.1; padding: 2px; overflow: hidden; color: #10202c; cursor: default; }
+.rm.cockpit { background: #9fb6cc; } .rm.office { background: #d9c27a; } .rm.suite { background: #e2b07c; } .rm.meet { background: #c9a3d6; }
+.rm.staff { background: #a9c8a0; } .rm.crew { background: #b9c1c9; } .rm.galley { background: #e9d8a8; } .rm.medical { background: #f0a8a8; }
+.rm.seats { background: #8fc3e0; } .rm.lounge { background: #a8dccb; } .rm.tech { background: #9aa4ad; } .rm.cargo { background: #c7b299; }
+.rm.stairs, .rm.lift { background: #4b5966; color: #fff; }
+.rooms { font-size: 12.5px; margin: 8px 0 0; } .rooms b { font-weight: 600; }
+.rooms .k { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 .pc { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; text-align: left; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px; cursor: pointer; }
 .pc:hover { border-color: var(--accent); }
 .pc[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
@@ -257,6 +269,7 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       <div id="realpanel" class="group" role="tabpanel" aria-labelledby="tab-real" hidden>
         <span class="label">Choose an aircraft</span>
         <div class="fleet" id="fleet"></div>
+        <div class="inside" id="inside" hidden></div>
         <p class="note">Real dimensions, weights and engine thrust. Fuel is cut down so a mission lasts a few minutes. The home runway is lengthened to suit each aircraft.</p>
       </div>
       <div id="custom" class="rail" role="tabpanel" aria-labelledby="tab-custom">
@@ -1308,6 +1321,8 @@ const LIVERY = {
   fw190: { body: '#6e7666', belly: '#a9b7c2', stripe: '#d4c23a', tail: '#6e7666', tailStripe: '#d4c23a', wing: '#6e7666', spinner: '#2f3230' },
   yak3: { body: '#7c848b', belly: '#a7b2bb', stripe: '#7c848b', tail: '#7c848b', tailStripe: '#c0272d', wing: '#7c848b', spinner: '#c0272d' },
   b121: { body: '#3a3f47', belly: '#30343a', stripe: '#b3262d', tail: '#3a3f47', tailStripe: '#b3262d', wing: '#40454d', engine: '#2e3238' },
+  b121b: { body: '#f4f6f9', belly: '#2c5d8f', stripe: '#c9a646', tail: '#2c5d8f', tailStripe: '#c9a646', wing: '#dfe4ea', engine: '#2c5d8f' },
+  b121c: { body: '#f4f6f9', belly: '#d7dde4', stripe: '#1f8f84', tail: '#1f8f84', tailStripe: '#f2c230', wing: '#dfe4ea', engine: '#1f8f84' },
   an225: { body: '#f2f3f5', belly: '#c9ced6', stripe: '#1f5aa8', tail: '#f2f3f5', tailStripe: '#f2c230', wing: '#e6e9ed', engine: '#d9dde2' },
   redhawk: { body: '#6d7076', belly: '#5d6066', stripe: '#b3262d', tail: '#b3262d', tailStripe: '#f2f2f2', wing: '#6d7076', engine: '#45484d' }
 };
@@ -1410,8 +1425,11 @@ function buildModel(p, gearDown, lvIn) {
     for (let i = 0; i < ts.length - 1; i++) for (let k = 0; k < n - 1; k++) F([cring[i][k], cring[i][k + 1], cring[i + 1][k + 1], cring[i + 1][k]], glass, { glass: true });
   } else {
     for (const s of [-1, 1]) {
-      const z = H * 0.14, z2 = z + H * 0.07, y = s * (W / 2 * 0.99 + 0.02);
-      F([[L / 2 - 0.13 * L, y, z], [L / 2 - 0.8 * L, y, z], [L / 2 - 0.8 * L, y, z2], [L / 2 - 0.13 * L, y, z2]], glass, { glass: true });
+      const y = s * (W / 2 * 0.99 + 0.02);
+      for (let d = 0; d < (p.decks || 1); d++) {   // one window band per deck
+        const z = p.decks ? -H * 0.26 + d * H * 0.22 : H * 0.14, z2 = z + H * (p.decks ? 0.05 : 0.07);
+        F([[L / 2 - 0.13 * L, y, z], [L / 2 - 0.8 * L, y, z], [L / 2 - 0.8 * L, y, z2], [L / 2 - 0.13 * L, y, z2]], glass, { glass: true });
+      }
       if (p.hump) F([[L / 2 - 0.07 * L, s * (W * 0.3), H * 0.62], [L / 2 - 0.27 * L, s * (W * 0.3), H * 0.62], [L / 2 - 0.27 * L, s * (W * 0.3), H * 0.68], [L / 2 - 0.07 * L, s * (W * 0.3), H * 0.68]], glass, { glass: true });
       F([[L / 2 - 0.03 * L, s * W * 0.05, topAt(0.04) * 0.75], [L / 2 - 0.065 * L, s * W * 0.3, topAt(0.08) * 0.85], [L / 2 - 0.065 * L, s * W * 0.3, topAt(0.08) * 0.62], [L / 2 - 0.03 * L, s * W * 0.05, topAt(0.04) * 0.45]], glass, { glass: true });
     }
@@ -2803,10 +2821,25 @@ $('b-map').addEventListener('click', toggleMap); $('b-pause').addEventListener('
 bindHold('b-gun', 'gun'); $('b-msl').addEventListener('click', fireMissile); $('b-flare').addEventListener('click', dropFlares); $('b-tgt').addEventListener('click', nextTarget); $('b-bail').addEventListener('click', bailOut);
 
 function buildFleet() {
-  $('fleet').innerHTML = Object.entries(REAL).filter(([k, r]) => !r.hidden).map(([k, r]) => `<button class="pc" data-k="${k}" aria-pressed="${k === realKey}"><b>${r.name}</b><span class="n">${r.span} m span<br>${r.mass >= 10000 ? Math.round(r.mass / 1000) + ' t' : r.mass + ' kg'}</span><span class="r">${r.role} · ${r.year}${r.freeOnly ? ' <i class="tag">Free fly only</i>' : ''}</span></button>`).join('');
+  $('fleet').innerHTML = Object.entries(REAL).filter(([k, r]) => !r.hidden).map(([k, r]) => `<button class="pc" data-k="${k}" aria-pressed="${k === realKey}"><b>${r.name}</b><span class="n">${r.span} m span<br>${r.mass >= 10000 ? Math.round(r.mass / 1000) + ' t' : r.mass + ' kg'}</span><span class="r">${r.role}${r.madeUp ? '' : ' · ' + r.year}${r.freeOnly ? ' <i class="tag">Free fly only</i>' : ''}</span></button>`).join('');
   document.querySelectorAll('#fleet .pc').forEach(b => b.addEventListener('click', () => { realKey = b.dataset.k; if (pick) pick = { mode: 'real', realKey, design: pick.design }; markFleet(); refresh(); syncModeLock(); saveSettings(); }));
 }
-function markFleet() { document.querySelectorAll('#fleet .pc').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === realKey ? 'true' : 'false'));
+// cutaway of a plane's decks (B-121B / B-121C); the same plans are meant for a future walk-around mode
+function showInside() {
+  const r = REAL[realKey], box = $('inside');
+  if (!r || !r.interior) { box.hidden = true; box.innerHTML = ''; return; }
+  const ft = m => Math.round(m * 3.281).toLocaleString();
+  let seats = 0, html = '';
+  for (const d of r.interior.decks) {
+    const ds = d.rooms.reduce((n, rm) => n + REAL.seatsIn(r.length, rm), 0); seats += ds;
+    html += `<div class="deckrow"><div class="dn"><b>${d.name}</b> · ${d.note}${ds ? ` · ${ds.toLocaleString()} seats` : ''}</div><div class="deckbar" role="img" aria-label="${d.name}: ${d.rooms.map(x => x[0]).join(', ')}">` +
+      d.rooms.map(rm => `<div class="rm ${rm[3]}" style="left:${rm[1] * 100}%;width:${(rm[2] - rm[1]) * 100}%" title="${rm[0]} · ${Math.round((rm[2] - rm[1]) * r.length)} m">${rm[3] === 'stairs' || rm[3] === 'lift' ? '' : rm[0]}</div>`).join('') + '</div></div>';
+  }
+  const list = r.interior.decks.map(d => `<p class="rooms"><b>${d.name}:</b> ${[...new Set(d.rooms.filter(x => x[3] !== 'stairs' && x[3] !== 'lift').map(x => x[0]))].join(', ')}.</p>`).join('');
+  box.innerHTML = `<h3>Inside the ${r.name}</h3><p class="sum">Three full decks, ${ft(r.length)} ft long, nose on the left. ${seats ? seats.toLocaleString() + ' seats in all. ' : ''}Dark blocks are stairs and lifts; scroll sideways for the whole plane, or point at a room for its size. The rooms are set up for a walk-around mode coming later.</p><div class="decks" tabindex="0" aria-label="Deck plans"><div>${html}</div></div>${list}`;
+  box.hidden = false;
+}
+function markFleet() { document.querySelectorAll('#fleet .pc').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === realKey ? 'true' : 'false')); showInside();
 }
 function setMode(m) {
   mode = m; $('tab-custom').setAttribute('aria-selected', m === 'custom'); $('tab-real').setAttribute('aria-selected', m === 'real');
@@ -2824,7 +2857,7 @@ function syncModeLock() {
 const userTab = m => { if (pick) pick.mode = m; setMode(m); saveSettings(); };
 $('tab-custom').addEventListener('click', () => userTab('custom')); $('tab-real').addEventListener('click', () => userTab('real'));
 document.querySelector('.tabs').addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') { e.preventDefault(); const m = e.key === 'Home' ? 'custom' : e.key === 'End' ? 'real' : mode === 'custom' ? 'real' : 'custom'; userTab(m); $('tab-' + m).focus(); } });
-buildFleet();
+buildFleet(); showInside();
 setGameMode('mission');
 {
   const shared = location.hash.startsWith('#d=') ? designFromCode(location.hash.slice(3)) : null;
