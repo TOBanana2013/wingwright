@@ -360,6 +360,7 @@ html.touch .flight.walking .tbtns { bottom: 12px !important; right: 14px !import
           <input type="radio" name="gmode" id="gm-fight" value="fight"><label class="o" for="gm-fight">Fight</label>
           <input type="radio" name="gmode" id="gm-stunt" value="stunt"><label class="o" for="gm-stunt">Stunt team</label>
           <input type="radio" name="gmode" id="gm-guard" value="guard"><label class="o" for="gm-guard">Guard</label>
+          <input type="radio" name="gmode" id="gm-battle" value="battle"><label class="o" for="gm-battle">Battle</label>
         </div><span class="hint" id="gm-hint"></span></div>
         <div id="modepanel" class="group" hidden></div>
       </div>
@@ -761,19 +762,19 @@ new MutationObserver(() => { if (!$('hangar').hidden) drawPlan(); }).observe(doc
 
 let stats = { wins: 0 };
 try { stats = JSON.parse(localStorage.getItem('wingwright-stats') || 'null') || stats; } catch (e) {}
-function showBest() { const g = typeof gameMode === 'undefined' ? 'mission' : gameMode; if (g === 'guard') { $('best').textContent = stats.guard ? `Presidents delivered: ${stats.guard}` + (stats.boardBest ? ` · fastest boarding ${mmss(stats.boardBest)}` : '') : 'Deliver the President safely to start your record.'; return; } if (g === 'situation') { $('best').textContent = `Classics done: ${Object.keys(stats.sits || {}).length} of 5 · random ones handled: ${stats.newSits || 0}`; return; } if (g === 'fight') { const n = stats[`w_${fightKind}_${fightSize}`] || 0; $('best').textContent = stats.fightWins ? `Won at this size: ${n} · all battles: ${stats.fightWins}` : 'Win a battle to start your record.'; return; } if (g === 'stunt') { $('best').textContent = stats.stuntBest ? `Best display score: ${stats.stuntBest}` : 'Fly the full routine to set a score.'; return; } $('best').textContent = g === 'challenge' ? (stats.peaks ? `Mountain landings: ${stats.peaks}` : 'Land on the mountain runway to beat the challenge.') : g === 'free' ? (stats.free ? `Free-fly landings so far: ${stats.free}` : 'Land anywhere you like.') : (stats.wins ? `Missions completed: ${stats.wins}` : 'Land on the target runway to complete a mission.'); }
+function showBest() { const g = typeof gameMode === 'undefined' ? 'mission' : gameMode; if (g === 'battle') { const n = Object.keys(stats.battles || {}).length; $('best').textContent = n ? `Battles won: ${n} of 10` : 'Win a battle to start your record.'; return; } if (g === 'guard') { $('best').textContent = stats.guard ? `Presidents delivered: ${stats.guard}` + (stats.boardBest ? ` · fastest boarding ${mmss(stats.boardBest)}` : '') : 'Deliver the President safely to start your record.'; return; } if (g === 'situation') { $('best').textContent = `Classics done: ${Object.keys(stats.sits || {}).length} of 5 · random ones handled: ${stats.newSits || 0}`; return; } if (g === 'fight') { const n = stats[`w_${fightKind}_${fightSize}`] || 0; $('best').textContent = stats.fightWins ? `Won at this size: ${n} · all battles: ${stats.fightWins}` : 'Win a battle to start your record.'; return; } if (g === 'stunt') { $('best').textContent = stats.stuntBest ? `Best display score: ${stats.stuntBest}` : 'Fly the full routine to set a score.'; return; } $('best').textContent = g === 'challenge' ? (stats.peaks ? `Mountain landings: ${stats.peaks}` : 'Land on the mountain runway to beat the challenge.') : g === 'free' ? (stats.free ? `Free-fly landings so far: ${stats.free}` : 'Land anywhere you like.') : (stats.wins ? `Missions completed: ${stats.wins}` : 'Land on the target runway to complete a mission.'); }
 showBest();
 
 // ===== Flight =====
 var gameMode = 'mission', landSeen = 0, pickT = 0;
-const MODEHINT = { guard: 'You are the pilot of Air Force One (the made-up B-121B Sky Palace). Board from the tail ramp, walk through the plane past every security checkpoint up to the flight deck, then fly the President between real airports across the ocean.', situation: 'Five real-life situations, each with its own map and plane. Pick one below.', fight: 'Three kinds of battle: modern jets (F-35 or F-22), a bomber run (B-17, B-29, SBD Dauntless, B-52, the giant made-up B-121, B-1B or B-2) or a WW2 dogfight for Britain, the USA, the Soviet Union, Germany or Japan.', stunt: 'Fly the Extra 330SC in a four-plane display team and perform a scored routine of solo and group stunts.', mission: 'Find the real target runway among closed decoy strips and land on it.', challenge: 'The target is high in the mountains. Climb over the foothills, turn into the valley and land on the plateau. Touching a mountainside is a crash.', free: 'No target and no failing. Open airfields all around: land on any runway or field, take off again and explore.' };
-const MODEBTN = { mission: 'Start mission', challenge: 'Start challenge', free: 'Start free flight', situation: 'Start situation', fight: 'Start fight', stunt: 'Start display', guard: 'Start guard duty' };
-const SPECIAL = ['situation', 'fight', 'stunt', 'guard'];   // modes that bring their own plane
+const MODEHINT = { battle: 'Ten of the biggest air battles in history, from the Battle of Britain to Desert Storm. Each one has its own planes, sides and job: stop a bomber raid, escort your bombers, bomb a fleet or win a dogfight.', guard: 'You are the pilot of Air Force One (the made-up B-121B Sky Palace). Board from the tail ramp, walk through the plane past every security checkpoint up to the flight deck, then fly the President between real airports across the ocean.', situation: 'Five real-life situations, each with its own map and plane. Pick one below.', fight: 'Three kinds of battle: modern jets (F-35 or F-22), a bomber run (B-17, B-29, SBD Dauntless, B-52, the giant made-up B-121, B-1B or B-2) or a WW2 dogfight for Britain, the USA, the Soviet Union, Germany or Japan.', stunt: 'Fly the Extra 330SC in a four-plane display team and perform a scored routine of solo and group stunts.', mission: 'Find the real target runway among closed decoy strips and land on it.', challenge: 'The target is high in the mountains. Climb over the foothills, turn into the valley and land on the plateau. Touching a mountainside is a crash.', free: 'No target and no failing. Open airfields all around: land on any runway or field, take off again and explore.' };
+const MODEBTN = { mission: 'Start mission', challenge: 'Start challenge', free: 'Start free flight', situation: 'Start situation', fight: 'Start fight', stunt: 'Start display', guard: 'Start guard duty', battle: 'Start battle' };
+const SPECIAL = ['situation', 'fight', 'stunt', 'guard', 'battle'];   // modes that bring their own plane
 function restorePick(p) {
   if (p.mode === 'custom') { mode = 'custom'; load(p.design); setMode('custom'); }
   else { realKey = p.realKey; setMode('real'); markFleet(); }
 }
-const MODEKEYS = { guard: 'Boarding: arrow keys walk, Space checks in, E and Q take the stairs up and down. Flying: K skips the long cruise.', fight: 'Keys: Space gun or bombs · F missile · T next target · G flares · 4 bomb run autopilot.', stunt: 'Keys: hold Nose up to loop, Left or Right to roll.', situation: 'Over the sea: J bails out.' };
+const MODEKEYS = { battle: 'Keys: Space guns (or bombs) · T next target · F missile and G flares in the jet battles.', guard: 'Boarding: arrow keys walk, Space checks in, E and Q take the stairs up and down. Flying: K skips the long cruise.', fight: 'Keys: Space gun or bombs · F missile · T next target · G flares · 4 bomb run autopilot.', stunt: 'Keys: hold Nose up to loop, Left or Right to roll.', situation: 'Over the sea: J bails out.' };
 function setGameMode(m) {
   const was = gameMode; gameMode = m;
   if (SPECIAL.includes(m) && !SPECIAL.includes(was) && !pick) pick = { mode, realKey, design: { ...lastCustom } };
@@ -818,9 +819,10 @@ function startFlight(newMission) {
       else rolled = { classic: sitId };
     }
     usePlane(rolled.classic ? SITS[rolled.classic].plane : rolled.plane);
-  } else if (gameMode === 'fight') usePlane(fightPlane()); else if (gameMode === 'stunt') usePlane('extra'); else if (gameMode === 'guard') usePlane('b121b');
+  } else if (gameMode === 'fight') usePlane(fightPlane()); else if (gameMode === 'stunt') usePlane('extra'); else if (gameMode === 'guard') usePlane('b121b'); else if (gameMode === 'battle') usePlane(battlePlane());
   others = []; fight = null; team = null;
   if (gameMode === 'guard') world = makeGuardWorld(spec, guardRoute, worldSeed);
+  else if (gameMode === 'battle') { const BT = battleNow(); world = battleWorld(BT); world.ceilAdd = Math.max(0, (BT.jets ? 12000 : 8000) - spec.ceiling); world.mode = 'fight'; world.free = false; world.target = world.home; world.battle = battleId; }
   else if (gameMode === 'situation') world = rolled.classic ? makeSituationWorld(spec, rolled.classic, worldSeed) : makeRandomSituation(spec, rolled.type, rolled.map, worldSeed);
   else { world = gameMode === 'fight' && fightKind === 'bomber' ? bomberWorld() : makeWorld(spec, worldSeed, ['fight', 'stunt'].includes(gameMode) ? 'free' : gameMode); if (gameMode === 'fight') world.ceilAdd = Math.max(0, 8000 - spec.ceiling); if (gameMode === 'fight' || gameMode === 'stunt') { world.mode = gameMode; world.free = false; world.target = world.home; } }
   const tg = world.target;
@@ -835,6 +837,10 @@ function startFlight(newMission) {
     const S = SITS[world.situation];
     $('m-title').textContent = S.title;
     $('m-sub').textContent = `${who} · map: ${S.map} · ${S.text}`;
+  } else if (world.mode === 'fight' && world.battle) {
+    const BT = BATTLES[world.battle];
+    $('m-title').textContent = `${BT.title}, ${BT.when}`;
+    $('m-sub').textContent = `${who} for ${BT.side} · ${BT.where} · ${BT.job}`;
   } else if (world.mode === 'fight') {
     if (fightKind === 'bomber') { const B = BOMBERS[bomberKey], nR = [2, 4, 8][[1, 2, 8].indexOf(fightSize)];
       $('m-title').textContent = `Bomber run: ${B.ships ? 'sink the enemy fleet' : 'destroy the enemy base'}`;
@@ -860,11 +866,11 @@ function startFlight(newMission) {
     $('m-title').textContent = `Target: runway ${tg.num}, ${tg.name}`;
     $('m-sub').textContent = `${who} · ${(Math.hypot(tg.e, tg.n) / 1000).toFixed(1)} km away, off to your ${bear < 0 ? 'left' : 'right'} · runway points ${hdgTxt(tg.hdg)} · ${tg.len} m long · ${world.runways.filter(r => r.kind === 'fake').length} closed decoys`;
   }
-  $('l-tgt').textContent = world.mode === 'free' ? 'Nearest field' : world.mode === 'fight' ? (fightKind === 'bomber' ? 'Bomb target' : 'Enemy') : 'To target'; $('g-agl').hidden = !world.terrain; landSeen = 0; pickT = 0;
+  $('l-tgt').textContent = world.mode === 'free' ? 'Nearest field' : world.mode === 'fight' ? (fight_isBomb() ? 'Bomb target' : 'Enemy') : 'To target'; $('g-agl').hidden = !world.terrain; landSeen = 0; pickT = 0;
   flight = newFlight(spec, world, worldSeed); setThrottle(0); for (const k in keys) keys[k] = 0; syncToggles(); $('b-ab').hidden = !spec.abMult; $('g-stunt').hidden = !spec.aero; smoke = []; chaseYaw = 0; if (spec.aero && viewMode === 'cockpit') toggleView();
   if (world.free) { flight.dep = world.home; pickT = 0; }
   if (world.start) airborne(flight, world.start);
-  if (world.mode === 'fight') { startFight(); $('b-gun').textContent = fight.B ? 'Bombs (Space)' : 'Gun (Space)'; $('b-msl').hidden = fight.kind !== 'jets'; $('b-flare').hidden = !fight.flaresLeft; syncToggles(); }
+  if (world.mode === 'fight') { startFight(); if (world.battle) note(BATTLES[world.battle].job, 8); $('b-gun').textContent = fight.B ? 'Bombs (Space)' : 'Gun (Space)'; $('b-msl').hidden = fight.kind !== 'jets'; $('b-flare').hidden = !fight.flaresLeft; syncToggles(); }
   $('b-ap4').textContent = world.mode === 'fight' && fight.B ? 'Bomb run (4)' : 'Landing prep (4)';
   if (world.mode === 'stunt') startStunt();
   $('b-bail').hidden = world.situation !== 'ocean'; $('fightbtns').hidden = world.mode !== 'fight'; $('missile').hidden = true; $('eng').hidden = true; $('eng').textContent = 'ENGINE FAILURE'; $('g-stunt').classList.remove('hot');
@@ -1512,6 +1518,18 @@ const LIVERY = {
   zero: { body: '#44573a', belly: '#c4c2b0', stripe: '#44573a', tail: '#44573a', tailStripe: '#c9a83a', wing: '#44573a', spinner: '#6e4a2e' },
   p51: { body: '#c6cbd1', belly: '#bfc4ca', stripe: '#1e1f22', tail: '#c6cbd1', tailStripe: '#d9b622', wing: '#c0c5cb', spinner: '#d9b622' },
   fw190: { body: '#6e7666', belly: '#a9b7c2', stripe: '#d4c23a', tail: '#6e7666', tailStripe: '#d4c23a', wing: '#6e7666', spinner: '#2f3230' },
+  hurricane: { body: '#5f6a45', belly: '#a8b2b5', stripe: '#cfc9a6', tail: '#5f6a45', tailStripe: '#cfc9a6', wing: '#5f6a45', spinner: '#2a2c2e' },
+  bf109: { body: '#76806a', belly: '#9fb4c6', stripe: '#e6c62e', tail: '#76806a', tailStripe: '#e6c62e', wing: '#5e6855', spinner: '#e6c62e' },
+  he111: { body: '#5e6855', belly: '#9fb4c6', stripe: '#e6c62e', tail: '#5e6855', tailStripe: '#e6c62e', wing: '#5e6855', engine: '#4b5244', spinner: '#2f3230' },
+  ju87: { body: '#6a7360', belly: '#9fb4c6', stripe: '#e6c62e', tail: '#6a7360', tailStripe: '#e6c62e', wing: '#6a7360', spinner: '#2f3230' },
+  la5: { body: '#7c848b', belly: '#a7b2bb', stripe: '#7c848b', tail: '#7c848b', tailStripe: '#c0272d', wing: '#6c7a5c', spinner: '#f2f2f2' },
+  f6f: { body: '#2a3d66', belly: '#e8ebee', stripe: '#2a3d66', tail: '#2a3d66', tailStripe: '#f2f2f2', wing: '#2a3d66', spinner: '#2a3d66' },
+  p47: { body: '#c6cbd1', belly: '#bfc4ca', stripe: '#1e1f22', tail: '#c6cbd1', tailStripe: '#2a6fd0', wing: '#c0c5cb', spinner: '#e8c33a' },
+  f86: { body: '#cfd4d9', belly: '#c4c9ce', stripe: '#1e3c78', tail: '#cfd4d9', tailStripe: '#e8c33a', wing: '#cfd4d9', engine: '#4a4f55' },
+  mig15: { body: '#b8bdc2', belly: '#aeb3b8', stripe: '#b8bdc2', tail: '#b8bdc2', tailStripe: '#c0272d', wing: '#b8bdc2', engine: '#4a4f55' },
+  f15: { body: '#8a949e', belly: '#7e8892', stripe: '#808a94', tail: '#8a949e', wing: '#8a949e', engine: '#4a5058' },
+  mig21: { body: '#a9b0b6', belly: '#9ea5ab', stripe: '#a9b0b6', tail: '#a9b0b6', tailStripe: '#c0272d', wing: '#a9b0b6', engine: '#4a5058' },
+  mig29: { body: '#7f8c8a', belly: '#c8cfd4', stripe: '#6f7c7a', tail: '#7f8c8a', tailStripe: '#c0272d', wing: '#7f8c8a', engine: '#4a5058' },
   yak3: { body: '#7c848b', belly: '#a7b2bb', stripe: '#7c848b', tail: '#7c848b', tailStripe: '#c0272d', wing: '#7c848b', spinner: '#c0272d' },
   b121: { body: '#3a3f47', belly: '#30343a', stripe: '#b3262d', tail: '#3a3f47', tailStripe: '#b3262d', wing: '#40454d', engine: '#2e3238' },
   b121b: { body: '#f4f6f9', belly: '#2c5d8f', stripe: '#c9a646', tail: '#2c5d8f', tailStripe: '#c9a646', wing: '#dfe4ea', engine: '#2c5d8f' },
@@ -2198,7 +2216,7 @@ function drawMini() {
   }
   // other aircraft, missiles
   for (const o of (world.mode === 'fight' && fight ? fight.agents.filter(a => !a.player) : others)) { if (!o.alive) continue; const q = M(o.e, o.n); if (q[0] < 0 || q[0] > w || q[1] < 0 || q[1] > h) continue; ctx.fillStyle = o.team === 'red' ? '#ff5a4a' : '#5ab0ff'; ctx.beginPath(); ctx.arc(q[0], q[1], 3.5, 0, Math.PI * 2); ctx.fill(); }
-  if (world.mode === 'fight' && fight && fight.tgts) { for (const x of fight.tgts) { const q = M(x.e, x.n); ctx.fillStyle = x.alive ? '#ffb02e' : '#5a5a5a'; ctx.fillRect(q[0] - 3.5, q[1] - 3.5, 7, 7); }
+  if (world.mode === 'fight' && fight && fight.tgts) { for (const x of fight.tgts) { const q = M(x.e, x.n); ctx.fillStyle = x.ours ? '#3cff8a' : x.alive ? '#ffb02e' : '#5a5a5a'; ctx.fillRect(q[0] - 3.5, q[1] - 3.5, 7, 7); }
     if (fight.ip) { const q = M(fight.ip[0], fight.ip[1]); ctx.strokeStyle = fight.onTarget ? '#ff3b30' : '#ffe14a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q[0], q[1], Math.max(4, fight.B.blast * ppm), 0, Math.PI * 2); ctx.stroke(); } }
   if (world.mode === 'fight' && fight) for (const m of fight.missiles) { if (!m.alive) continue; const q = M(m.p[0], m.p[1]); ctx.fillStyle = m.team === 'red' ? '#ffd0c8' : '#ffffff'; ctx.fillRect(q[0] - 1.5, q[1] - 1.5, 3, 3); }
   if (world.mode === 'stunt' && team) { const p = slotPoint('left'), q = M(p[0], p[1]); ctx.strokeStyle = '#3cff8a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q[0], q[1], 6, 0, Math.PI * 2); ctx.stroke(); }
@@ -2339,8 +2357,9 @@ const SITS = {
 };
 let guardRoute = 'atlantic', sitId = 'random', rolled = null, fightJet = 'f35', fightSize = 1;
 function buildModePanel() {
-  const p = $('modepanel'); p.hidden = !['situation', 'fight', 'stunt', 'guard'].includes(gameMode);
+  const p = $('modepanel'); p.hidden = !['situation', 'fight', 'stunt', 'guard', 'battle'].includes(gameMode);
   if (p.hidden) return;
+  if (gameMode === 'battle') { p.innerHTML = battlePanelHTML(); bindBattlePanel(p); return; }
   if (gameMode === 'guard') {
     const km = id => { const r = GUARD_ROUTES[id]; return Math.round(greatCircle(AIRPORTS[r.from], AIRPORTS[r.to]).d / 1000); };
     p.innerHTML = '<span class="label">Pick a route</span><div class="sitlist">' + Object.entries(GUARD_ROUTES).map(([k, r]) => { const A = AIRPORTS[r.from], B = AIRPORTS[r.to];
@@ -2378,7 +2397,7 @@ const TYPEINFO = {
 };
 let others = [];
 function drawExtras(ctx, cam, F, w, h) {
-  if (world.mode === 'fight' && fight && fight.B) drawTargets(ctx, cam, F);
+  if (world.mode === 'fight' && fight && fight.tgts) drawTargets(ctx, cam, F);
   drawOthers(ctx, cam, F);
   if (world.mode === 'fight' && fight) { drawFightFX(ctx, cam, F); if (fight.B) drawBombFX(ctx, cam, F); drawMarkers(ctx, cam, w, h); if (fight.B) { drawTargetMarkers(ctx, cam); drawBombSight(ctx, w, h); } }
   if (world.mode === 'stunt' && team) { drawSlotRing(ctx, cam, F); drawMarkers(ctx, cam, w, h); }
@@ -2401,7 +2420,7 @@ function drawOthers(ctx, cam, F) {
 // ---------- FIGHT: battle types (modern jets, bomber run, WW2 dogfight) ----------
 const WW2 = { uk: { name: 'Britain', plane: 'spit', side: 'allies' }, usa: { name: 'USA', plane: 'p51', side: 'allies' }, ussr: { name: 'Soviet Union', plane: 'yak3', side: 'allies' },
   ger: { name: 'Germany', plane: 'fw190', side: 'axis' }, jpn: { name: 'Japan', plane: 'zero', side: 'axis' } };
-const SHORT = { fw190: 'Fw 190', zero: 'Zero', spit: 'Spitfire', p51: 'Mustang', yak3: 'Yak-3', redhawk: 'Red Hawk', f35: 'F-35', f22: 'F-22' };
+const SHORT = { hurricane: 'Hurricane', bf109: 'Bf 109', he111: 'He 111', ju87: 'Stuka', la5: 'La-5', f6f: 'Hellcat', p47: 'Thunderbolt', f86: 'Sabre', mig15: 'MiG-15', f15: 'F-15', mig21: 'MiG-21', mig29: 'MiG-29', b17: 'B-17', sbd: 'Dauntless', fw190: 'Fw 190', zero: 'Zero', spit: 'Spitfire', p51: 'Mustang', yak3: 'Yak-3', redhawk: 'Red Hawk', f35: 'F-35', f22: 'F-22' };
 const BOMBERS = {
   b17: { label: 'B-17 Flying Fortress', bombs: 16, stick: 2, blast: 40, hp: 400, era: 'ww2', red: ['fw190'], alt: 2500, guns: { range: 900, dps: 22, n: 3 },
     text: '1943 over Europe. Thirteen machine guns: your gunners fire by themselves. Mustangs escort you; Fw 190s defend the factory.' },
@@ -2420,7 +2439,8 @@ const BOMBERS = {
 };
 const ERA_NOTE = 'Bombs fall forward as well as down: watch the bomb sight (bottom left) and drop when the target is inside the circle.';
 let fightKind = 'jets', bomberKey = 'b17', ww2Key = 'uk';
-function fightPlane() { return fightKind === 'bomber' ? bomberKey : fightKind === 'ww2' ? WW2[ww2Key].plane : fightJet; }
+function fight_isBomb() { return world && world.battle ? BATTLES[world.battle].type === 'bomb' : fightKind === 'bomber'; }
+function fightPlane() { return gameMode === 'battle' ? battlePlane() : fightKind === 'bomber' ? bomberKey : fightKind === 'ww2' ? WW2[ww2Key].plane : fightJet; }
 function fightPanelHTML() {
   const opt = (name, id, val, cur, label) => `<input type="radio" name="${name}" id="${id}" value="${val}" ${cur === val ? 'checked' : ''}><label class="o" for="${id}">${label}</label>`;
   let h = `<div class="seg"><span class="label">Battle type</span><div class="opts">${opt('fk', 'fk-jets', 'jets', fightKind, 'Modern jets')}${opt('fk', 'fk-bomber', 'bomber', fightKind, 'Bomber run')}${opt('fk', 'fk-ww2', 'ww2', fightKind, 'WW2 dogfight')}</div></div>`;
@@ -2435,8 +2455,8 @@ function bindFightPanel(p) {
   const on = (n, fn) => p.querySelectorAll(`input[name=${n}]`).forEach(i => i.addEventListener('change', () => { fn(i.value); usePlane(fightPlane()); buildModePanel(); }));
   on('fk', v => fightKind = v); on('fj', v => fightJet = v); on('bk', v => bomberKey = v); on('wc', v => ww2Key = v); on('fs', v => fightSize = +v);
 }
-function bomberWorld() {
-  const B = BOMBERS[bomberKey];
+function bomberWorld(B0) {
+  const B = B0 || BOMBERS[bomberKey];
   if (B.ships) { const home = { e: 0, n: 0, hdg: 0, len: spec.homeLen, wid: 30, kind: 'home', name: 'Island airfield', elev: 0, num: '36' }; return seaWorld([home], home, (e, n) => Math.hypot(e, n - home.len / 2) < home.len / 2 + 700); }
   return makeWorld(spec, worldSeed, 'free');
 }
@@ -2462,12 +2482,12 @@ function makeTargets(B) {
   const T = [];
   if (B.ships) {
     const c = [2500, 14000], hdg = Math.PI / 2;
-    T.push({ type: 'carrier', name: 'Enemy carrier', e: c[0], n: c[1], psi: hdg, len: 240, wid: 30, hp: 200, sp: 7 });
-    T.push({ type: 'destroyer', name: 'Enemy destroyer', e: c[0] + 700, n: c[1] + 500, psi: hdg, len: 110, wid: 12, hp: 100, sp: 7 });
+    T.push({ type: 'carrier', name: (B.shipNames || [])[0] || 'Enemy carrier', e: c[0], n: c[1], psi: hdg, len: 240, wid: 30, hp: 200, sp: 7 });
+    T.push({ type: 'destroyer', name: (B.shipNames || [])[1] || 'Enemy destroyer', e: c[0] + 700, n: c[1] + 500, psi: hdg, len: 110, wid: 12, hp: 100, sp: 7 });
   } else {
     let zc = [0, B.era === 'jet' ? 24000 : 16000];
     for (let k = 0; k < 12 && world.runways.some(r => Math.hypot(r.e - zc[0], r.n - zc[1]) < 2500); k++) zc = [zc[0] + 3000, zc[1]];
-    const types = [['factory', 'Factory', 200, 36], ['hangar', 'Hangar', 100, 26], ['tank', 'Fuel tank', 100, 14], ['tank', 'Fuel tank', 100, 14], ['radar', 'Radar', 100, 12]];
+    const types = [['factory', B.factory || 'Factory', 200, 36], ['hangar', 'Hangar', 100, 26], ['tank', 'Fuel tank', 100, 14], ['tank', 'Fuel tank', 100, 14], ['radar', 'Radar', 100, 12]];
     for (const [type, name, hp, r] of types) {
       let p, k = 0; do { const a = Math.random() * 2 * Math.PI, d = 120 + Math.random() * 520; p = [zc[0] + Math.sin(a) * d, zc[1] + Math.cos(a) * d]; } while (k++ < 50 && T.some(t => Math.hypot(t.e - p[0], t.n - p[1]) < 190));
       T.push({ type, name, e: p[0], n: p[1], psi: Math.random() * Math.PI, r, hp, sp: 0 });
@@ -2483,16 +2503,116 @@ function hitsTarget(t, p, blast) {
 }
 function impactOf(p, v) { const g0 = groundAt(world, p[0], p[1]), hh = Math.max(0, p[2] - g0), tt = (v[2] + Math.sqrt(v[2] * v[2] + 2 * G * hh)) / G; return [p[0] + v[0] * tt, p[1] + v[1] * tt, tt]; }
 
+
+// ---------- BATTLE: ten of the biggest air battles in history, shrunk to a size a game can fly ----------
+// type: intercept (stop a bomber raid before it reaches its goal), escort (bring your own bombers through),
+//       bomb (fly the bomber yourself, on the bomber-run engine), dogfight (fighters only).
+// reds / raiders / escorts / wing are counts at normal size; Huge size doubles them.
+const BATTLES = {
+  britain: { title: 'Battle of Britain', when: 'July to October 1940', where: 'Southern England', side: 'Britain', type: 'intercept', you: ['spit', 'hurricane'],
+    blue: ['hurricane', 'spit'], wing: 4, raid: 'he111', raiders: 6, raidV: 85, raidGuns: { range: 600, dps: 5, n: 2 }, escort: ['bf109'], escorts: 4, goal: 'London', maxReach: 3, alt: 3500,
+    story: 'The first major battle fought entirely in the air. RAF Hurricanes and Spitfires stopped the Luftwaffe from winning control of the sky over Britain.',
+    job: 'Stop the He 111 bombers before they reach London. Bf 109s are escorting them.' },
+  midway: { title: 'Battle of Midway', when: '4 June 1942', where: 'Pacific Ocean, near Midway Island', side: 'USA', type: 'bomb', you: ['sbd'], bomber: 'sbd',
+    bomb: { red: ['zero'], escortKey: 'sbd', escortBomber: true, ships: true, shipNames: ['Carrier Akagi', 'Destroyer'] }, reds: 6, wing: 2,
+    story: 'US Navy SBD Dauntless dive bombers wrecked four Japanese aircraft carriers in a single day, a turning point of the Pacific war.',
+    job: 'Find the Japanese fleet, dive steeply with the airbrake out and bomb the carrier while Zeros attack you.' },
+  kursk: { title: 'Battle of Kursk', when: 'July 1943', where: 'Kursk, Soviet Union', side: 'Soviet Union', type: 'intercept', you: ['la5', 'yak3'],
+    blue: ['la5', 'yak3'], wing: 4, raid: 'ju87', raiders: 8, raidV: 80, raidGuns: { range: 500, dps: 4, n: 1 }, escort: ['fw190'], escorts: 4, goal: 'the Soviet tank lines', maxReach: 4, alt: 2000,
+    story: 'Thousands of Soviet and German aircraft fought above the largest tank battle in history.',
+    job: 'Stuka dive bombers are heading for the Soviet tanks. Shoot them down before they get there.' },
+  schweinfurt: { title: 'Schweinfurt–Regensburg raid', when: '17 August 1943', where: 'Southern Germany', side: 'USA', type: 'bomb', you: ['b17'], bomber: 'b17',
+    bomb: { red: ['fw190', 'bf109'], escortKey: 'b17', escortBomber: true, factory: 'Ball-bearing factory' }, reds: 8, wing: 3,
+    story: '376 B-17s flew deep into Germany, beyond the range of their fighter escorts, to bomb ball-bearing and aircraft factories. 60 of them were shot down.',
+    job: 'Bomb the ball-bearing factory. No fighters protect you: your gunners and the B-17s around you are all you have.' },
+  bigweek: { title: 'Big Week', when: '20 to 25 February 1944', where: 'Germany', side: 'USA', type: 'escort', you: ['p51', 'p47'],
+    blue: ['p51', 'p47'], wing: 3, raid: 'b17', raiders: 6, raidV: 80, raidGuns: { range: 800, dps: 7, n: 3 }, red: ['fw190', 'bf109'], reds: 8, goal: 'the aircraft factory', minSafe: 3, alt: 3500,
+    story: 'A week of huge American and British raids on German aircraft factories. Long-range P-51 Mustangs could now escort the bombers all the way.',
+    job: 'Escort six B-17s to the aircraft factory. At least three must get there.' },
+  philsea: { title: 'Battle of the Philippine Sea', when: '19 to 20 June 1944', where: 'Philippine Sea, Pacific Ocean', side: 'USA', type: 'intercept', you: ['f6f'], sea: true,
+    blue: ['f6f'], wing: 3, raid: 'zero', raiders: 8, raidV: 100, escort: ['zero'], escorts: 4, goal: 'the US fleet', maxReach: 4, alt: 4000,
+    story: 'The largest carrier battle in history. US Navy Hellcats shot down so many Japanese aircraft that pilots called it the "Great Marianas Turkey Shoot".',
+    job: 'A big raid of Zeros carrying bombs is heading for the US carriers. Break it up before it reaches the fleet.' },
+  bodenplatte: { title: 'Operation Bodenplatte', when: '1 January 1945', where: 'Belgium and the Netherlands', side: 'Britain', type: 'intercept', you: ['spit', 'p47'],
+    blue: ['spit', 'p47'], wing: 3, raid: 'fw190', raiders: 8, raidV: 115, escort: ['bf109'], escorts: 4, goal: 'the Allied airfield', maxReach: 4, alt: 700,
+    story: 'About 900 German fighters made a surprise low-level attack on Allied airfields on New Year’s Day. Germany lost around 300 aircraft and many pilots it could not replace.',
+    job: 'Fw 190s are racing in low to strafe your airfield. Catch them before they get there.' },
+  migalley: { title: 'MiG Alley', when: '1951 to 1953', where: 'North-west Korea, near the Yalu River', side: 'USA', type: 'dogfight', you: ['f86'], jets: true,
+    blue: ['f86'], wing: 3, red: ['mig15'], reds: 6, alt: 7000,
+    story: 'The first big jet-against-jet battles. American F-86 Sabres fought Soviet-built MiG-15s, with guns only: no guided missiles yet.',
+    job: 'Clear the sky of MiG-15s. Guns only: get within 800 m and hold Space.' },
+  bekaa: { title: 'Bekaa Valley air battle', when: '9 to 10 June 1982', where: 'Bekaa Valley, Lebanon', side: 'Israel', type: 'dogfight', you: ['f15'], jets: true, missiles: true,
+    blue: ['f15'], wing: 3, red: ['mig21'], reds: 8, alt: 4000,
+    story: 'One of the largest jet battles ever, with about 150 jets. Israeli F-15s and F-16s shot down more than 80 Syrian aircraft without losing one in air combat.',
+    job: 'Shoot down the MiG-21s. Lock on (keep the red box in front) and press F, or use the gun.' },
+  desertstorm: { title: 'Operation Desert Storm', when: '17 January 1991', where: 'Iraq', side: 'USA', type: 'dogfight', you: ['f15'], jets: true, missiles: true,
+    blue: ['f15'], wing: 3, red: ['mig29'], reds: 6, alt: 5000,
+    story: 'The first night of one of the biggest air campaigns since World War II. US F-15C Eagles fought Iraqi MiG-29s over Iraq.',
+    job: 'Clear the way for the strike aircraft: shoot down the MiG-29s.' }
+};
+let battleId = 'britain', battleSize = 1, battleYou = {};
+const battleNow = () => BATTLES[battleId];
+const battlePlane = () => { const B = battleNow(); return B.you.includes(battleYou[battleId]) ? battleYou[battleId] : B.you[0]; };
+function battlePanelHTML() {
+  const won = stats.battles || {}, B = battleNow();
+  let h = '<span class="label">Pick a battle</span><div class="sitlist">' + Object.entries(BATTLES).map(([k, b]) => `<button class="pc sit" data-b="${k}" aria-pressed="${k === battleId}"><b>${b.title}${won[k] ? ' <i class="tag ok">Won</i>' : ''}</b><span class="n">${b.when}<br>${b.you.map(x => SHORT[x] || REAL[x].name).join(' or ')}</span><span class="r">${b.where} · you fly for ${b.side}</span></button>`).join('') + '</div>';
+  h += `<p class="hint"><b>${B.title}.</b> ${B.story} <b>Your job:</b> ${B.job}</p>`;
+  const opt = (name, id, val, cur, label) => `<input type="radio" name="${name}" id="${id}" value="${val}" ${cur === val ? 'checked' : ''}><label class="o" for="${id}">${label}</label>`;
+  if (B.you.length > 1) h += `<div class="seg"><span class="label">Your plane</span><div class="opts two">${B.you.map(k => opt('by', 'by-' + k, k, battlePlane(), REAL[k].name)).join('')}</div></div>`;
+  h += `<div class="seg"><span class="label">Size</span><div class="opts two">${opt('bz', 'bz-1', '1', String(battleSize), 'Big')}${opt('bz', 'bz-2', '2', String(battleSize), 'Huge (twice the planes)')}</div><span class="hint">The real battles had hundreds or thousands of aircraft; this is a slice of one. ${B.type === 'bomb' || B.missiles ? 'Keys: Space ' + (B.type === 'bomb' ? 'drops bombs' : 'gun · F missile · G flares') + ' · T next target.' : 'Guns only: get close and hold Space · T next target.'}</span></div>`;
+  return h;
+}
+function bindBattlePanel(p) {
+  p.querySelectorAll('[data-b]').forEach(b => b.addEventListener('click', () => { battleId = b.dataset.b; usePlane(battlePlane()); buildModePanel(); }));
+  p.querySelectorAll('input[name=by]').forEach(i => i.addEventListener('change', () => { battleYou[battleId] = i.value; usePlane(battlePlane()); buildModePanel(); }));
+  p.querySelectorAll('input[name=bz]').forEach(i => i.addEventListener('change', () => { battleSize = +i.value; }));
+}
+function battleWorld(BT) {
+  if (BT.type === 'bomb') return bomberWorld({ ...BOMBERS[BT.bomber], ...BT.bomb });
+  if (BT.sea) { const home = { e: 0, n: 0, hdg: 0, len: spec.homeLen, wid: 30, kind: 'home', name: 'Carrier group', elev: 0, num: '36' }; return seaWorld([home], home, () => false); }
+  return makeWorld(spec, worldSeed, 'free');
+}
+// the place a raid is heading for (or your bombers' target), with buildings or ships to show it
+function goalDeco(BT, goal) {
+  const T = [], put = (type, name, de, dn, extra) => T.push({ type, name, e: goal[0] + de, n: goal[1] + dn, psi: Math.random() * Math.PI, r: 20, hp: 1, sp: 0, ours: BT.type === 'intercept', ...extra });
+  if (BT.sea) { put('carrier', 'US carrier', 0, 0, { psi: 0, len: 250, wid: 32 }); put('destroyer', 'US destroyer', 900, 400, { psi: 0, len: 115, wid: 12 }); put('destroyer', 'US destroyer', -800, -300, { psi: 0, len: 115, wid: 12 }); }
+  else { put('factory', BT.goal, 0, 0); put('hangar', BT.goal, 260, 120); put('hangar', BT.goal, -240, 180); put('tank', BT.goal, 120, -260); put('radar', BT.goal, -200, -220); }
+  for (const t of T) { t.alive = true; t.hp0 = 1; t.sink = 0; t.faces = targetFaces(t); t.dead = t.faces; }
+  return T;
+}
+// bombers in the battle (a raid, or the B-17s you escort): fly to the goal in formation, gunners fire at fighters close by
+function bomberGuns(a, dt, t) {
+  const g = a.guns; if (!g || a.gone) return; let k = 0;
+  for (const e of fight.agents) {
+    if (!e.alive || e.team === a.team || e.role === 'bomber' || e.gone) continue;
+    const d = Math.hypot(e.e - a.e, e.n - a.n, e.h - a.h); if (d > g.range) continue;
+    if (Math.random() < 0.5) { e.hp -= g.dps * dt * 2 * (1 - 0.6 * d / g.range); if (e.hp <= 0 && e.alive) kill(e, a); }
+    if (Math.random() < dt * 8) fight.tracers.push({ a: [a.e, a.n, a.h], b: [e.e + gauss() * 12, e.n + gauss() * 12, e.h + gauss() * 8], t });
+    if (++k >= g.n) break;
+  }
+}
+function bomberReached(a, t) {
+  const F = fight, BT = F.BT; a.gone = true; a.reached = true; a.goneT = t;
+  for (let i = 0; i < 3; i++) F.booms.push({ p: [a.goal[0] + gauss() * 120, a.goal[1] + gauss() * 120, groundAt(world, a.goal[0], a.goal[1]) + 4], t: t + i * 0.3, big: true, splash: !!BT.sea });
+  sound.boom();
+  if (a.team === 'red') { F.reached++; note(`${a.name} got through and bombed ${BT.goal}! That's ${F.reached} of the ${F.maxReach} that would lose the battle.`, 4); }
+  else { F.reached++; note(`${a.name} has bombed ${BT.goal}. ${F.reached} of your bombers are through.`, 4); }
+}
+
 // ---------- FIGHT ----------
 let fight = null;
 const LOCK_T = 1.5;   // seconds of keeping the target in front (within 20° and 6 km) to lock a missile on
 function startFight() {
-  const kind = fightKind, B = kind === 'bomber' ? BOMBERS[bomberKey] : null, ww = kind === 'ww2', agents = [];
-  const n = fightSize, nRed = B ? [2, 4, 8][[1, 2, 8].indexOf(n)] : n, nBlue = B ? (B.stealth ? 1 : 1 + Math.floor(nRed / 2)) : n;
-  const side = ww ? WW2[ww2Key].side : 'allies';
-  const redKeys = B ? (B.era === 'jet' ? ['redhawk'] : B.red) : ww ? (side === 'allies' ? ['fw190', 'zero'] : ['spit', 'p51', 'yak3']) : ['redhawk'];
-  const blueKey = i => i === 0 ? fightPlane() : B ? (B.era === 'jet' ? (i % 2 ? 'f22' : 'f35') : 'p51') : ww ? WW2[ww2Key].plane : (i % 2 ? 'f22' : 'f35');
-  const startH = B ? B.alt : ww ? 2500 : 3000, sep = ww ? 9000 : 16000;
+  const BT = world.battle ? BATTLES[world.battle] : null, big = BT ? battleSize : 1;
+  const kind = BT ? (BT.type === 'bomb' ? 'bomber' : BT.missiles ? 'jets' : 'ww2') : fightKind;
+  const B = kind === 'bomber' ? (BT ? { ...BOMBERS[BT.bomber], ...BT.bomb } : BOMBERS[bomberKey]) : null, ww = kind === 'ww2', agents = [];
+  const n = fightSize;
+  let nRed = B ? [2, 4, 8][[1, 2, 8].indexOf(n)] : n, nBlue = B ? (B.stealth ? 1 : 1 + Math.floor(nRed / 2)) : n;
+  if (BT) { nRed = (BT.type === 'intercept' ? BT.escorts : BT.reds) * big; nBlue = 1 + BT.wing * big; }
+  const side = ww && !BT ? WW2[ww2Key].side : 'allies';
+  const redKeys = BT ? (BT.type === 'intercept' ? BT.escort : BT.bomb ? BT.bomb.red : BT.red) : B ? (B.era === 'jet' ? ['redhawk'] : B.red) : ww ? (side === 'allies' ? ['fw190', 'zero'] : ['spit', 'p51', 'yak3']) : ['redhawk'];
+  const blueKey = i => i === 0 ? fightPlane() : B && B.escortKey ? B.escortKey : BT ? BT.blue[i % BT.blue.length] : B ? (B.era === 'jet' ? (i % 2 ? 'f22' : 'f35') : 'p51') : ww ? WW2[ww2Key].plane : (i % 2 ? 'f22' : 'f35');
+  const startH = BT && BT.alt ? BT.alt : B ? B.alt : ww ? 2500 : 3000, sep = ww ? 9000 : 16000;
   const tgts = B ? makeTargets(B) : null, zone = tgts ? zoneOf(tgts) : null;
   const mk = (team, i, key) => {
     const row = Math.floor(i / 2), col = i % 2 ? 1 : -1, pr = REAL[key].engine === 'prop';
@@ -2502,19 +2622,45 @@ function startFight() {
     else { e = col * (180 + row * 160); nn = sep + row * 220; h = startH + (i % 3) * 120; psi = Math.PI; }
     const hp = team === 'blue' && i === 0 ? (B ? B.hp : ww ? 150 : 200) : 100;
     return { team, key, e, n: nn, h, psi, theta: 0, phi: 0, v: pr ? 125 : 235, vc: pr ? 125 : 235, vb: pr ? 145 : 290, vmin: pr ? 85 : 150,
-      gmax: pr ? (team === 'red' ? 1.7 : 2.0) : (team === 'red' ? 5.5 : 6.5), prop: pr, hp, alive: true, missiles: pr ? 0 : (team === 'blue' ? 4 : B ? 1 : 2), flares: pr ? 0 : 6,
-      cool: team === 'blue' ? 4 + Math.random() * 4 : 12 + Math.random() * 8, lastFlare: -9, wob: Math.random() * 10, smoke: [], engaged: !B, slot: i, patrolH: h,
-      name: team === 'blue' ? (i ? (B ? 'Escort ' : 'Wingman ') + i : 'You') : (B || ww ? `${SHORT[key]} ${i + 1}` : 'Red ' + (i + 1)) };
+      gmax: pr ? (team === 'red' ? 1.7 : 2.0) : (team === 'red' ? 5.5 : 6.5), prop: pr, hp, alive: true, missiles: pr || (BT && !BT.missiles) ? 0 : (team === 'blue' ? 4 : B || BT ? 1 : 2), flares: pr ? 0 : 6,
+      cool: team === 'blue' ? 4 + Math.random() * 4 : (BT ? 25 : 12) + Math.random() * 8, lastFlare: -9, wob: Math.random() * 10, smoke: [], engaged: !B, slot: i, patrolH: h,
+      name: team === 'blue' ? (i ? (B && B.escortBomber ? SHORT[key] + ' ' : B ? 'Escort ' : 'Wingman ') + i : 'You') : (B || ww || BT ? `${SHORT[key] || REAL[key].name} ${i + 1}` : 'Red ' + (i + 1)) };
   };
   for (let i = 0; i < nBlue; i++) agents.push(mk('blue', i, blueKey(i)));
+  // in a battle bomb run the planes around you are bombers too: they hold formation on you and their gunners fire
+  if (B && B.escortBomber) for (const a of agents) if (!a.player && a.team === 'blue') Object.assign(a, { role: 'bomber', formOn: agents[0], guns: { range: 700, dps: 6, n: 2 }, hp: 160 });
   for (let i = 0; i < nRed; i++) agents.push(mk('red', i, redKeys[i % redKeys.length]));
   agents[0].player = true;
+  // battles: a bomber raid heading for a goal (intercept: theirs, escort: yours)
+  let goal = null, deco = null;
+  if (BT && (BT.type === 'intercept' || BT.type === 'escort')) {
+    const red = BT.type === 'intercept', nR = BT.raiders * big;
+    goal = red ? [0, -26000] : [0, 22000];
+    const rv = BT.raidV, raid = [];
+    for (let i = 0; i < nR; i++) {
+      const row = Math.floor(i / 3), col = (i % 3) - 1, off = [col * 240 + (row % 2) * 120, row * (red ? 260 : -260)];
+      const a = mk(red ? 'red' : 'blue', i, BT.raid);
+      Object.assign(a, { role: 'bomber', e: off[0] + (red ? 0 : 450), n: (red ? 12000 : -150) + off[1], h: startH + (i % 2) * 40 + (red ? 0 : -60), psi: red ? Math.PI : 0, v: rv, vc: rv, vb: rv, vmin: rv * 0.8,
+        goal: [goal[0] + off[0], goal[1] + off[1]], guns: BT.raidGuns || null, hp: red ? 100 : 180, slot: i, engaged: true, name: `${SHORT[BT.raid]} ${i + 1}` });
+      raid.push(a); agents.push(a);
+    }
+    for (const a of agents) {
+      if (a.role || a.player) continue;
+      if (red && a.team === 'red') {   // escorts start above the raid and stay with it until they see a fighter coming
+        const b = raid[a.slot % raid.length]; Object.assign(a, { e: b.e + (a.slot % 2 ? 300 : -300), n: b.n - 300, h: b.h + 400, psi: Math.PI, escortOf: b, engaged: false });
+      }
+      if (!red && a.team === 'red') { a.hunt = a.slot % 3 !== 2; }   // most enemy fighters go for your bombers
+      if (red && a.team === 'blue') a.hunt = a.slot % 3 !== 0;        // most of your wingmen go for the bombers
+    }
+    deco = goalDeco(BT, goal);
+  }
   const jetGuns = kind === 'jets' || (B && B.era === 'jet');
-  fight = { kind, B, ww, agents, missiles: [], flares: [], booms: [], chutes: [], tracers: [], lockT: 0, lock: null, target: null, missilesLeft: kind === 'jets' ? 6 : 0, flaresLeft: jetGuns ? 12 : 0, kills: 0, gunKills: 0, warn: false, gunT: 0,
-    noLock: kind !== 'jets', hp0: agents[0].hp, tgts, zone, bombs: [], bombsLeft: B ? B.bombs : 0, bombsUsed: 0, stickQ: 0, stickT: 0, dropCool: 0, puffs: [], flakT: 1, gunT2: 0, alerted: false, ip: null, bombTip: '' };
+  fight = { kind, B, BT, big, ww, agents, missiles: [], flares: [], booms: [], chutes: [], tracers: [], lockT: 0, lock: null, target: null, missilesLeft: kind === 'jets' ? 6 : 0, flaresLeft: jetGuns ? 12 : 0, kills: 0, gunKills: 0, warn: false, gunT: 0,
+    noLock: kind !== 'jets', hp0: agents[0].hp, tgts: tgts || deco, deco: !!deco, zone: zone || goal, goal, reached: 0, maxReach: BT && BT.maxReach ? BT.maxReach * big : 0, minSafe: BT && BT.minSafe ? BT.minSafe * big : 0,
+    bombs: [], bombsLeft: B ? B.bombs : 0, bombsUsed: 0, stickQ: 0, stickT: 0, dropCool: 0, puffs: [], flakT: 1, gunT2: 0, alerted: false, ip: null, bombTip: '' };
   others = agents.filter(a => !a.player);
   const s0 = spec, sig = Math.exp(-startH / 8500), v0 = Math.max(s0.vStall / Math.sqrt(sig) * 1.5, Math.min(230, s0.vMax * 0.85));
-  airborne(flight, { e: 0, n: 0, h: startH, psi: 0, v: kind === 'jets' ? 240 : v0, thr: 0.8 });
+  airborne(flight, { e: 0, n: 0, h: startH, psi: 0, v: kind === 'jets' ? 240 : BT && BT.type === 'escort' ? Math.max(v0 * 0.8, BT.raidV + 15) : v0, thr: 0.8 });
 }
 function fwdOf(a) { return [Math.sin(a.psi) * Math.cos(a.theta * DEG), Math.cos(a.psi) * Math.cos(a.theta * DEG), Math.sin(a.theta * DEG)]; }
 function syncPlayerAgent() {
@@ -2533,7 +2679,7 @@ const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) * 1.4;
 function fightUpdate(dt) {
   const F = fight, A = F.agents, t = flight.t, B = F.B; syncPlayerAgent();
   const P = A[0];
-  const enemiesOf = a => A.filter(b => b.alive && b.team !== a.team);
+  const enemiesOf = a => A.filter(b => b.alive && !b.gone && b.team !== a.team);
   if (B) {   // moving ships, enemy radar
     for (const tg of F.tgts) { if (tg.alive && tg.sp) { tg.e += Math.sin(tg.psi) * tg.sp * dt; tg.n += Math.cos(tg.psi) * tg.sp * dt; } if (!tg.alive && tg.len) tg.sink = Math.min(30, tg.sink + dt * 0.7); }
     F.zone = zoneOf(F.tgts);
@@ -2549,7 +2695,24 @@ function fightUpdate(dt) {
     if (!a.alive) { if (a.falling) { a.theta = Math.max(-70, a.theta - 25 * dt); a.phi += 120 * dt; const fw = fwdOf(a); a.e += fw[0] * a.v * dt; a.n += fw[1] * a.v * dt; a.h += fw[2] * a.v * dt; if (Math.random() < 0.5) { a.smoke.push([a.e, a.n, a.h]); if (a.smoke.length > 40) a.smoke.shift(); } if (a.h < 0) a.falling = false; } continue; }
     const red = a.team === 'red', maxRate = a.gmax * G / Math.max(a.prop ? 70 : 120, a.v);
     let dYaw = a.psi, dPitch = 0, vWant = null;
-    if (B && !a.engaged && red) {   // patrol a circle over the target
+    if (a.role === 'bomber') {   // battle bombers: formation or a straight run to the goal, gunners always busy
+      if (a.gone) { if (t - a.goneT > 40) { a.alive = false; continue; } }
+      else if (a.formOn) {
+        const L = a.formOn, fx = Math.sin(L.psi), fy = Math.cos(L.psi), back = 120 * Math.ceil(a.slot / 2), sd = (a.slot % 2 ? 1 : -1) * 150;
+        const se = L.e - fx * back + fy * sd, sn = L.n - fy * back - fx * sd;
+        dYaw = Math.atan2(se + fx * 500 - a.e, sn + fy * 500 - a.n); dPitch = Math.max(-0.3, Math.min(0.3, Math.atan2(L.h - 30 - a.h, 500)));
+        vWant = Math.max(a.vmin, Math.min(a.vb * 1.15, (L.v || a.vc) - ((a.e - se) * fx + (a.n - sn) * fy) * 0.08));
+      } else {
+        dYaw = Math.atan2(a.goal[0] - a.e, a.goal[1] - a.n); dPitch = Math.max(-0.15, Math.min(0.15, (a.patrolH - a.h) / 600)); vWant = a.vc;
+        if (Math.hypot(a.goal[0] - a.e, a.goal[1] - a.n) < 900) bomberReached(a, t);
+      }
+      bomberGuns(a, dt, t);
+    } else if (a.escortOf && !a.engaged) {   // raid escort: stay above the bombers until enemy fighters come close
+      const L = a.escortOf;
+      if (!L.alive || L.gone || enemiesOf(a).some(b => b.role !== 'bomber' && Math.hypot(b.e - a.e, b.n - a.n, b.h - a.h) < 6000)) a.engaged = true;
+      const fx = Math.sin(L.psi), fy = Math.cos(L.psi), sd = (a.slot % 2 ? 1 : -1) * 300, se = L.e - fx * 300 + fy * sd, sn = L.n - fy * 300 - fx * sd;
+      dYaw = Math.atan2(se + fx * 600 - a.e, sn + fy * 600 - a.n); dPitch = Math.max(-0.3, Math.min(0.3, Math.atan2(L.h + 400 - a.h, 600))); vWant = Math.max(a.vmin, (L.v || a.vc) + 5);
+    } else if (B && !a.engaged && red) {   // patrol a circle over the target
       const dx = a.e - F.zone[0], dy = a.n - F.zone[1], r = Math.hypot(dx, dy), ang = Math.atan2(dx, dy);
       dYaw = ang + Math.PI / 2 + Math.max(-0.7, Math.min(0.7, (r - 2500) / 1500)); dPitch = Math.max(-0.2, Math.min(0.2, (a.patrolH - a.h) / 600)); vWant = a.vc * 0.85;
     } else if (B && !a.engaged) {   // escort: hold formation on the bomber
@@ -2559,9 +2722,9 @@ function fightUpdate(dt) {
       dYaw = Math.atan2(se + fx * 500 - a.e, sn + fy * 500 - a.n); dPitch = Math.max(-0.3, Math.min(0.3, Math.atan2(P.h + 40 - a.h, 500)));
       vWant = Math.max(a.vmin, Math.min(a.vb, P.v - ((a.e - se) * fx + (a.n - sn) * fy) * 0.08));
     } else {
-      if (!a.tgt || !a.tgt.alive) {
-        const es = enemiesOf(a), load = x => A.filter(b => b.alive && b.tgt === x).length;
-        a.tgt = (B && red && a.slot % 2 === 0 && P.alive) ? P : es.sort((x, y) => (load(x) - load(y)) * 1e6 + Math.hypot(x.e - a.e, x.n - a.n) - Math.hypot(y.e - a.e, y.n - a.n))[0] || null;
+      if (!a.tgt || !a.tgt.alive || a.tgt.gone) {
+        const es = enemiesOf(a), load = x => A.filter(b => b.alive && b.tgt === x).length, hunt = x => a.hunt && x.role !== 'bomber' && es.some(y => y.role === 'bomber') ? 1 : 0;
+        a.tgt = (B && red && a.slot % 2 === 0 && P.alive) ? P : es.sort((x, y) => (hunt(x) - hunt(y)) * 1e8 + (load(x) - load(y)) * 1e6 + Math.hypot(x.e - a.e, x.n - a.n) - Math.hypot(y.e - a.e, y.n - a.n))[0] || null;
       }
       const threat = F.missiles.find(m => m.target === a && m.alive && Math.hypot(m.p[0] - a.e, m.p[1] - a.n, m.p[2] - a.h) < 3500);
       if (threat) {
@@ -2574,7 +2737,7 @@ function fightUpdate(dt) {
         dPitch = Math.max(-0.5, Math.min(0.5, Math.atan2(ph - a.h, Math.hypot(pe - a.e, pn - a.n))));
         const fw = fwdOf(a), to = [g.e - a.e, g.n - a.n, g.h - a.h], off = Math.acos(Math.max(-1, Math.min(1, (fw[0] * to[0] + fw[1] * to[1] + fw[2] * to[2]) / (d || 1)))) / DEG;
         a.cool -= dt;
-        if (a.missiles > 0 && !(g.player && B && B.stealth) && a.cool <= 0 && d > 1200 && d < (red ? 5500 : 7000) && off < 20) { a.missiles--; a.cool = red ? 14 + Math.random() * 8 : 7; launch(a, g); }
+        if (a.missiles > 0 && !(g.player && B && B.stealth) && a.cool <= 0 && d > 1200 && d < (red ? (F.BT ? 4000 : 5500) : 7000) && off < 20) { a.missiles--; a.cool = red ? 14 + Math.random() * 8 : 7; launch(a, g); }
         if (d < (a.prop ? 650 : 900) && off < (a.prop ? 5 : 4)) { const dmg = (red ? 14 : 26) * dt * (Math.random() < (g.player && B && B.stealth ? 0.35 : 0.7) ? 1 : 0); g.hp -= dmg; F.tracers.push({ a: [a.e, a.n, a.h], b: [g.e, g.n, g.h], t }); if (g.hp <= 0 && g.alive) kill(g, a); }
         if (F.kind !== 'jets') vWant = d > 4000 ? a.vb : d < 1000 ? Math.max(a.vmin, Math.min(a.vb, (g.v || a.vc) + 12)) : a.vc;
         else vWant = Math.hypot(g.e - a.e, g.n - a.n) > 4000 ? 290 : 235;
@@ -2704,12 +2867,25 @@ function fightUpdate(dt) {
     $('h-stunt').textContent = `${left} of ${F.tgts.length} left · ${F.bombsLeft} bombs · ${hpTxt}`;
     if (!left && !flight.result) flight.result = { kind: 'victory', why: `All ${F.tgts.length} targets destroyed using ${F.bombsUsed} bomb${F.bombsUsed > 1 ? 's' : ''}!${F.kills ? ` Your gunners shot down ${F.kills} fighter${F.kills > 1 ? 's' : ''}.` : ''} ${redN ? 'Head for home!' : 'No enemy fighters left in the sky.'}` };
     else if (!F.bombsLeft && !F.stickQ && !F.bombs.length && left && !flight.result) flight.result = { kind: 'nobombs', why: `Out of bombs with ${left} target${left > 1 ? 's' : ''} still standing. Next time line the target up in the bomb sight circle before you drop.` };
+  } else if (F.BT && F.goal) {
+    const BT = F.BT, gunTxt = F.overheat ? 'GUN HOT' : `gun ${Math.round((F.heat || 0) * 100)}%`, raid = A.filter(a => a.role === 'bomber' && !a.formOn), flying = raid.filter(a => a.alive && !a.gone).length;
+    $('g-stunt').classList.toggle('hot', !!F.overheat);
+    if (BT.type === 'intercept') {
+      $('h-stunt').textContent = `${flying} bombers left · ${F.reached} through · ${hpTxt} · ${gunTxt}`;
+      const downed = raid.filter(a => !a.alive && !a.reached).length;
+      if (F.reached >= F.maxReach && !flight.result) flight.result = { kind: 'raided', why: `${F.reached} bombers got through to ${BT.goal}. In the real ${BT.title}, every bomber you stopped mattered. You shot down ${F.kills} aircraft yourself.` };
+      else if (!flying && !flight.result) flight.result = { kind: 'victory', why: `The raid is broken! ${downed} of ${raid.length} bombers shot down${F.reached ? `, only ${F.reached} got through` : ' and not one reached ' + BT.goal}. You got ${F.kills} yourself. Every crew bailed out with a parachute.` };
+    } else {
+      $('h-stunt').textContent = `${flying} B-17s flying · ${F.reached} bombed · ${redN} fighters · ${hpTxt}`;
+      if (flying + F.reached < F.minSafe && !flight.result) flight.result = { kind: 'escortfail', why: `Too many B-17s were shot down: only ${flying + F.reached} could still reach ${BT.goal}, and ${F.minSafe} were needed. You shot down ${F.kills} enemy fighters.` };
+      else if (!flying && !flight.result) flight.result = { kind: 'victory', why: `${F.reached} of ${raid.length} B-17s bombed ${BT.goal}. Escort job done! You shot down ${F.kills} enemy fighters yourself.` };
+    }
   } else {
     const gunTxt = F.overheat ? 'GUN HOT' : `gun ${Math.round((F.heat || 0) * 100)}%`;
     $('h-stunt').textContent = F.kind === 'jets' ? `${blue} v ${redN} · M${F.missilesLeft} F${F.flaresLeft} · ${gunTxt}` : `${blue} v ${redN} · ${hpTxt} · ${gunTxt}`;
     $('g-stunt').classList.toggle('hot', !!F.overheat);
     if (!redN && !flight.result) { const nR = A.filter(a => a.team === 'red').length;
-      flight.result = { kind: 'victory', why: F.kind === 'jets' ? `${nR === 1 ? 'The Red Hawk is' : `All ${nR} Red Hawks are`} knocked out! You got ${F.kills} yourself. Every enemy pilot ejected safely.` : `${nR === 1 ? 'The enemy fighter is' : `All ${nR} enemy fighters are`} down! You got ${F.kills} yourself. Every pilot bailed out with a parachute.` }; }
+      flight.result = { kind: 'victory', why: F.BT ? `All ${nR} ${SHORT[F.BT.red[0]]}s are down! You got ${F.kills} yourself. Every enemy pilot ${F.agents.some(a => a.team === 'red' && !a.prop) ? 'ejected' : 'bailed out'} safely.` : F.kind === 'jets' ? `${nR === 1 ? 'The Red Hawk is' : `All ${nR} Red Hawks are`} knocked out! You got ${F.kills} yourself. Every enemy pilot ejected safely.` : `${nR === 1 ? 'The enemy fighter is' : `All ${nR} enemy fighters are`} down! You got ${F.kills} yourself. Every pilot bailed out with a parachute.` }; }
   }
 }
 function segDist3(q, a, b) { const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], L2 = d[0] ** 2 + d[1] ** 2 + d[2] ** 2 || 1, u = Math.max(0, Math.min(1, ((q[0] - a[0]) * d[0] + (q[1] - a[1]) * d[1] + (q[2] - a[2]) * d[2]) / L2)); return Math.hypot(q[0] - a[0] - d[0] * u, q[1] - a[1] - d[1] * u, q[2] - a[2] - d[2] * u); }
@@ -2816,7 +2992,7 @@ function drawTargetMarkers(ctx, cam) {
 }
 function drawMarkers(ctx, cam, w, h) {
   // markers on every other aircraft; red brackets and lock on the current target
-  const list = world.mode === 'fight' ? fight.agents.filter(a => !a.player && a.alive) : others;
+  const list = world.mode === 'fight' ? fight.agents.filter(a => !a.player && a.alive && !a.gone) : others;
   ctx.font = '600 11px ' + css('--f-mono'); ctx.textAlign = 'center';
   for (const a of list) {
     const q = cam.proj(a.e, a.n, a.h), red = a.team === 'red', isT = world.mode === 'fight' && a === fight.target;
@@ -2934,7 +3110,7 @@ function bailOut() {
 
 function finish() {
   const f = flight, r = f.result;
-  const titles = { victory: world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'guard' ? 'President delivered' : world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
+  const titles = { raided: 'The bombers got through', escortfail: 'Too many bombers lost', victory: world.battle ? `${BATTLES[world.battle].title}: victory!` : world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'guard' ? 'President delivered' : world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
   $('r-title').textContent = titles[r.kind];
   $('r-title').className = ['win', 'victory', 'stuntdone', 'ditched', 'bailed'].includes(r.kind) ? 'ok' : r.kind === 'landed' || r.kind === 'decoy' ? 'warn' : 'bad';
   $('r-why').textContent = r.why;
@@ -2946,6 +3122,7 @@ function finish() {
   stats.flights = (stats.flights || 0) + 1; save();
   if (world.mode === 'situation' && world.situation === 'random' && r.kind === 'win') { stats.newSits = (stats.newSits || 0) + 1; save(); $('r-label').textContent = `Random situations handled: ${stats.newSits}`; showBest(); }
   else if (world.mode === 'situation' && ['win', 'ditched', 'bailed'].includes(r.kind)) { stats.sits = stats.sits || {}; stats.sits[world.situation] = true; save(); $('r-label').textContent = `Situation ${Object.keys(stats.sits).length} of 5 done`; showBest(); }
+  else if (world.battle && r.kind === 'victory') { stats.battles = stats.battles || {}; stats.battles[world.battle] = true; save(); $('r-label').textContent = `Battles won: ${Object.keys(stats.battles).length} of 10`; showBest(); }
   else if (world.mode === 'fight' && r.kind === 'victory') { stats.fightWins = (stats.fightWins || 0) + 1; const kk = fight.kind, sz = fightSize, key = `w_${kk}_${sz}`; stats[key] = (stats[key] || 0) + 1; save(); $('r-label').textContent = `${kk === 'bomber' ? 'Bombing runs' : kk === 'ww2' ? 'WW2 battles' : 'Jet battles'} won at this size: ${stats[key]} · ${stats.fightWins} battles in all`; showBest(); }
   else if (world.mode === 'guard' && r.kind === 'win') { stats.guard = (stats.guard || 0) + 1; if (f.boardT && !f.boardSkipped) stats.boardBest = Math.min(stats.boardBest || 1e9, f.boardT); save(); $('r-label').textContent = `Presidents delivered: ${stats.guard}`; showBest(); }
   else if (world.mode === 'stunt' && r.kind === 'stuntdone') { stats.stuntBest = Math.max(stats.stuntBest || 0, team.score); save(); $('r-label').textContent = `Display score ${team.score}`; showBest(); }
