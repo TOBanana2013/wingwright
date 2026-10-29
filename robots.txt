@@ -1,0 +1,3 @@
+# Wingwright is not for search engines or scrapers: please don't crawl any of it.
+User-agent: *
+Disallow: /

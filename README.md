@@ -11,6 +11,8 @@ A build-a-plane flight simulator that runs in the browser. Design your own plane
 - **Situation:** five classic emergencies, plus random fuel-leak, short-runway, crosswind, power-loss and medical flights over desert, arctic and night-city maps.
 - **Fight:** modern jets (F-35 / F-22), bomber runs (B-17, B-29, SBD Dauntless, B-52, B-1B, B-2) and WW2 dogfights (Spitfire, P-51, Yak-3, Fw 190, Zero).
 - **Stunt team:** a scored aerobatic display in the Extra 330SC.
+- **Battle:** ten of the biggest air battles in history, scaled down: Battle of Britain, Midway, Kursk, the Schweinfurt–Regensburg raid, Big Week, the Philippine Sea, Operation Bodenplatte, MiG Alley, the Bekaa Valley and Desert Storm. Each has its own planes and job: stop a bomber raid, escort your bombers, dive-bomb a fleet or win a dogfight.
+- **Guard:** you are the pilot of Air Force One (the made-up B-121B). Board from the tail ramp and walk the three decks past eight checkpoints to the flight deck, then fly the President between real airports across the Atlantic or Pacific. Real great-circle distances, slow long-haul fuel burn, and K skips the long cruise.
 
 ## Code layout
 - `src/physics.js`: flight physics, world builders and the guidance used by the autopilots and tips. Plain JavaScript that also runs in Node, so it can be tested without a browser.

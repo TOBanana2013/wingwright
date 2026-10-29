@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wingwright</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -149,6 +150,58 @@ button:focus-visible, .chip:focus-visible { outline: 2px solid var(--accent); ou
 .slots button.x { border-left: 1px solid var(--line); color: var(--muted); padding: 4px 8px; }
 #myplanes .hint { font-size: 12.5px; color: var(--muted); }
 .coachopt { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.touchui { position: absolute; inset: 0; pointer-events: none; }
+.touchui > * { pointer-events: auto; }
+.ttop { position: absolute; left: 16px; bottom: calc(22px + clamp(120px, 34vmin, 170px)); display: flex; flex-direction: column; gap: 5px; }
+.tbtn { font: 600 14px var(--f-body); color: #f2f6f9; background: rgba(8,14,20,.6); border: 1px solid rgba(255,255,255,.35); border-radius: 12px; min-height: 48px; padding: 4px 8px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.tbtn.sm { min-height: 34px; font-size: 12.5px; border-radius: 8px; padding: 2px 10px; }
+.tbtn[aria-pressed="true"], .tbtn.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tbtn.fire { position: absolute; right: 14px; bottom: calc(22px + clamp(130px, 46vmin, 230px)); width: 62px; height: 62px; border-radius: 50%; padding: 0; background: rgba(194,47,47,.85); font-size: 14px; }
+.tbtn.fire.on { background: #ff4a3a; }
+.tbtns { position: absolute; right: 86px; bottom: 12px; display: grid; grid-template-columns: repeat(3, 70px); gap: 6px; }
+.tbtns .tbtn { min-height: 46px; font-size: 13px; padding: 2px 4px; }
+.touchonly { display: none; } html.touch .touchonly { display: inline-flex; }
+html.touch .side { top: 8px; } html.touch .side #mini { width: 130px; height: min(110px, 24vh); }
+.stickpad { position: absolute; left: 16px; bottom: 16px; width: clamp(120px, 34vmin, 170px); aspect-ratio: 1; border-radius: 50%; background: rgba(8,14,20,.32); border: 2px solid rgba(255,255,255,.45); touch-action: none; }
+.stickpad .knob { position: absolute; left: 50%; top: 50%; width: 42%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 2px 6px rgba(0,0,0,.35); transform: translate(-50%, -50%); pointer-events: none; }
+.stickpad .lab { position: absolute; left: 0; right: 0; text-align: center; font: 600 10px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85); pointer-events: none; }
+.stickpad .lab.up { top: 6px; } .stickpad .lab.dn { bottom: 6px; }
+.thrpad { position: absolute; right: 14px; bottom: 12px; width: 62px; height: clamp(130px, 46vmin, 230px); border-radius: 12px; background: rgba(8,14,20,.45); border: 2px solid rgba(255,255,255,.45); overflow: hidden; touch-action: none; }
+.thrfill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: rgba(226,86,14,.85); }
+.thrpad span { position: absolute; left: 0; right: 0; top: 6px; text-align: center; font: 600 13px var(--f-mono); color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; }
+.turnme { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; background: rgba(8,14,20,.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 14px; display: none; pointer-events: none; }
+html.touch .controls, html.touch #keyhelp, html.touch #pathchart, html.touch .keyonly { display: none !important; }
+html.touch .sky #view { height: calc(100svh - 2px); max-height: 640px; min-height: 260px; }
+html.touch .hud { left: 6px; top: 6px; max-width: calc(100% - 156px); grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 3px; }
+@media (max-width: 400px), (max-height: 400px) {
+  html.touch .hud { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 2px; }
+  html.touch .hud .g { padding: 2px 4px; min-width: 0; }
+  html.touch .hud .g span { font-size: 9px; }
+  html.touch .hud .g b { font-size: 13px; }
+  html.touch #g-fuel:not(.hot) { display: none; }
+}
+@media (max-width: 400px) {
+  html.touch .hud { max-width: calc(100% - 148px); grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+  html.touch .hud .g b { font-size: 11.5px; }
+  html.touch #g-stunt { grid-column: 1 / -1; }
+}
+@media (max-height: 400px) {
+  html.touch .ttop { left: calc(28px + clamp(120px, 34vmin, 170px)); bottom: 16px; }
+}
+html.touch .g { min-width: 0; padding: 2px 6px; }
+html.touch .g span { font-size: 9px; }
+html.touch .g b { font-size: 12.5px; white-space: normal; }
+html.touch #g-load, html.touch #g-ap, html.touch #g-cfg, html.touch #g-hdg, html.touch .viewbtn { display: none; }
+html.touch .side canvas { width: 150px; }
+html.touch .coach { top: 100px; left: 112px; max-width: 38%; font-size: 12.5px; pointer-events: none; }
+html.touch .tip { font-size: 12.5px; max-width: 60%; }
+html.touch .side { position: absolute; right: 10px; top: 8px; flex-direction: column; padding: 0; background: none; }
+@media (orientation: portrait) {
+  html.touch .turnme { display: block; animation: fadeout 4s forwards; }
+  html.touch .tbtns { grid-template-columns: repeat(4, 58px); right: 14px; bottom: calc(96px + clamp(130px, 46vmin, 230px)); }
+  html.touch .coach { top: 198px; left: 10px; max-width: 60%; }
+}
+@keyframes fadeout { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .coach { position: absolute; left: 10px; top: 168px; margin: 0; padding: 8px 12px; list-style: none; background: rgba(8,14,20,.85); color: #eef4f8; border-left: 3px solid var(--accent); border-radius: 4px; font-size: 13.5px; max-width: min(300px, 45%); }
 .coach li:not(.now) { display: none; }
 .coach small { display: block; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #cfdde8; margin-bottom: 2px; }
@@ -160,6 +213,25 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
 .tab { font: 800 17px var(--f-display); text-transform: uppercase; letter-spacing: .05em; padding: 9px 6px; border: 0; background: var(--panel); color: var(--ink); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
 .fleet { display: flex; flex-direction: column; gap: 6px; }
+.seg .opts.gmopts { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 600px) { .flight.walking .tip { top: 126px; } }
+/* Guard mode boarding: the view becomes a deck plan; only the walking controls stay */
+.flight.walking #keyhelp, .flight.walking .hud, .flight.walking .viewbtn, .flight.walking .side, .flight.walking .alert, .flight.walking #coach, .flight.walking #hmap { display: none !important; }
+.flight.walking .controls > :not(#walkbtns):not(.sysbtns):not(#back) { display: none !important; }
+html.touch .flight.walking #t-btns .tbtn:not(.wk), html.touch .flight.walking #t-thr, html.touch .flight.walking #t-fire, html.touch .flight.walking [data-for=viewbtn], .flight.walking .stickpad .lab { display: none !important; }
+html.touch .flight.walking .tbtns { bottom: 12px !important; right: 14px !important; grid-template-columns: repeat(2, 86px) !important; }
+.inside { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.inside h3 { font-size: 15px; margin: 0 0 2px; } .inside .sum { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+.deckrow { margin-bottom: 8px; } .deckrow .dn { font-size: 12px; color: var(--muted); }
+.decks { overflow-x: auto; padding-bottom: 4px; } .decks > div { min-width: 760px; }
+.deckbar { position: relative; height: 46px; border: 1px solid var(--line); border-radius: 14px 4px 4px 14px; background: var(--grid); overflow: hidden; }
+.deckbar .rm { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--panel); font-size: 10px; line-height: 1.1; padding: 2px; overflow: hidden; color: #10202c; cursor: default; }
+.rm.cockpit { background: #9fb6cc; } .rm.office { background: #d9c27a; } .rm.suite { background: #e2b07c; } .rm.meet { background: #c9a3d6; }
+.rm.staff { background: #a9c8a0; } .rm.crew { background: #b9c1c9; } .rm.galley { background: #e9d8a8; } .rm.medical { background: #f0a8a8; }
+.rm.seats { background: #8fc3e0; } .rm.lounge { background: #a8dccb; } .rm.tech { background: #9aa4ad; } .rm.cargo { background: #c7b299; }
+.rm.stairs, .rm.lift { background: #4b5966; color: #fff; }
+.rooms { font-size: 12.5px; margin: 8px 0 0; } .rooms b { font-weight: 600; }
+.rooms .k { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 .pc { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; text-align: left; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px; cursor: pointer; }
 .pc:hover { border-color: var(--accent); }
 .pc[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
@@ -212,6 +284,7 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       <div id="realpanel" class="group" role="tabpanel" aria-labelledby="tab-real" hidden>
         <span class="label">Choose an aircraft</span>
         <div class="fleet" id="fleet"></div>
+        <div class="inside" id="inside" hidden></div>
         <p class="note">Real dimensions, weights and engine thrust. Fuel is cut down so a mission lasts a few minutes. The home runway is lengthened to suit each aircraft.</p>
       </div>
       <div id="custom" class="rail" role="tabpanel" aria-labelledby="tab-custom">
@@ -287,17 +360,24 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       <dl class="sheet" id="sheet"></dl>
       <div class="group"><h2>Pre-flight check</h2><ul class="verdicts" id="verdicts"></ul></div>
       <div class="group"><h2>Game mode</h2>
-        <div class="seg"><div class="opts">
+        <div class="seg"><div class="opts gmopts">
           <input type="radio" name="gmode" id="gm-mission" value="mission" checked><label class="o" for="gm-mission">Mission</label>
           <input type="radio" name="gmode" id="gm-challenge" value="challenge"><label class="o" for="gm-challenge">Challenge</label>
           <input type="radio" name="gmode" id="gm-free" value="free"><label class="o" for="gm-free">Free fly</label>
           <input type="radio" name="gmode" id="gm-situation" value="situation"><label class="o" for="gm-situation">Situation</label>
           <input type="radio" name="gmode" id="gm-fight" value="fight"><label class="o" for="gm-fight">Fight</label>
           <input type="radio" name="gmode" id="gm-stunt" value="stunt"><label class="o" for="gm-stunt">Stunt team</label>
+          <input type="radio" name="gmode" id="gm-guard" value="guard"><label class="o" for="gm-guard">Guard</label>
+          <input type="radio" name="gmode" id="gm-battle" value="battle"><label class="o" for="gm-battle">Battle</label>
         </div><span class="hint" id="gm-hint"></span></div>
         <div id="modepanel" class="group" hidden></div>
       </div>
       <div class="go"><button class="btn" id="fly">Start mission</button><span class="best" id="best"></span><label class="coachopt"><input type="checkbox" id="coachopt"> Show me how to fly (step-by-step checklist)</label></div>
+      <div class="seg ctlseg"><span class="label">Controls</span><div class="opts">
+        <input type="radio" name="ctl" id="ctl-auto" value="auto" checked><label class="o" for="ctl-auto">Automatic</label>
+        <input type="radio" name="ctl" id="ctl-touch" value="touch"><label class="o" for="ctl-touch">Phone / tablet</label>
+        <input type="radio" name="ctl" id="ctl-keys" value="keys"><label class="o" for="ctl-keys">Keyboard</label>
+      </div><span class="hint" id="ctl-hint"></span></div>
     </div>
   </section>
 
@@ -312,10 +392,10 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
         <div class="g" id="g-agl" hidden><span>Above ground</span><b id="h-agl">0</b></div>
         <div class="g"><span>Climb</span><b id="h-vs">0</b></div>
         <div class="g tgt"><span id="l-tgt">To target</span><b id="h-tgt">0</b></div>
-        <div class="g"><span>Heading</span><b id="h-hdg">000°</b></div>
+        <div class="g" id="g-hdg"><span>Heading</span><b id="h-hdg">000°</b></div>
         <div class="g" id="g-load"><span>G-load</span><b id="h-g">1.0</b></div>
         <div class="g" id="g-fuel"><span>Fuel</span><b id="h-fuel">0</b></div>
-        <div class="g"><span>Flaps · Airbrake</span><b id="h-cfg">DOWN · off</b></div>
+        <div class="g" id="g-cfg"><span>Flaps · Airbrake</span><b id="h-cfg">DOWN · off</b></div>
         <div class="g" id="g-ap"><span>Autopilot</span><b id="h-ap">OFF</b></div>
         <div class="g on" id="g-stunt" hidden><span id="l-stunt">Stunts</span><b id="h-stunt">0 loops · 0 rolls</b></div>
       </div>
@@ -327,8 +407,36 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
       <div class="alert terr" id="missile" role="alert" hidden>MISSILE · TURN + FLARES (<span data-code="KeyG">G</span>)</div>
       <div class="alert" id="eng" role="alert" hidden>ENGINE FAILURE</div>
       <div class="tip" id="tip" role="status" aria-live="polite"></div>
+      <div class="touchui" id="touchui" hidden>
+        <div class="ttop">
+          <button class="tbtn sm" data-for="b-pause">Pause</button>
+          <button class="tbtn sm" data-for="viewbtn">View</button>
+        </div>
+        <div class="stickpad" id="t-stick" role="application" aria-label="Joystick: drag up for nose up, down for nose down, left and right to turn">
+          <span class="lab up">nose up</span><span class="lab dn">nose down</span><div class="knob" id="t-knob"></div>
+        </div>
+        <button class="tbtn fire" id="t-fire" data-for="b-gun">Fire</button>
+        <div class="tbtns" id="t-btns">
+          <button class="tbtn" data-for="b-msl">Missile</button>
+          <button class="tbtn" data-for="b-flare">Flares</button>
+          <button class="tbtn" data-for="b-tgt">Target</button>
+          <button class="tbtn" id="t-flaps">Flaps 1</button>
+          <button class="tbtn" data-for="b-brake">Brake</button>
+          <button class="tbtn" data-for="b-ap4">Land prep</button>
+          <button class="tbtn" data-for="b-rev">Reverse</button>
+          <button class="tbtn" data-for="b-ab">Afterburn</button>
+          <button class="tbtn" data-for="b-bail">Bail out</button>
+          <button class="tbtn" data-for="b-skip">Skip cruise</button>
+          <button class="tbtn wk" data-for="w-check">Check in</button>
+          <button class="tbtn wk" data-for="w-up">Stairs up</button>
+          <button class="tbtn wk" data-for="w-down">Stairs down</button>
+          <button class="tbtn wk" data-for="w-skip">Skip boarding</button>
+        </div>
+        <div class="thrpad" id="t-thr" role="slider" aria-label="Throttle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="thrfill" id="t-thrfill"></div><span id="t-thrtxt">0%</span></div>
+        <p class="turnme" id="t-turn">Turn your phone sideways for a bigger view.</p>
+      </div>
       <ol class="coach" id="coach" aria-label="First flight checklist" hidden></ol>
-      <div class="result" id="pause" hidden><div class="card"><span class="label">Paused</span><h3>Paused</h3><p>Take a breather. Press <kbd data-code="KeyP">P</kbd> or <kbd>Esc</kbd> to carry on.</p><div class="go"><button class="btn" id="resume">Resume</button></div></div></div>
+      <div class="result" id="pause" hidden><div class="card"><span class="label">Paused</span><h3>Paused</h3><p class="keyonly">Take a breather. Press <kbd data-code="KeyP">P</kbd> or <kbd>Esc</kbd> to carry on.</p><div class="go"><button class="btn" id="resume">Resume</button><button class="btn ghost" id="p-restart">Restart</button><button class="btn ghost" id="p-hangar">Hangar</button><button class="btn ghost touchonly" id="t-full">Full screen</button><button class="btn ghost touchonly" id="t-sound">Sound on</button></div></div></div>
       <div class="result" id="result" role="dialog" aria-modal="true" aria-labelledby="r-title" hidden>
         <div class="card">
           <span class="label" id="r-label">Flight report</span>
@@ -355,10 +463,12 @@ kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line)
         <button class="hold tog" id="b-ab" aria-pressed="false" hidden>Afterburner (<span data-code="KeyX">X</span>)</button>
         <button class="hold tog" id="b-ap4" aria-pressed="false">Landing prep (4)</button>
         <button class="hold" id="b-bail" hidden>Bail out (<span data-code="KeyJ">J</span>)</button>
+        <button class="hold" id="b-skip" hidden>Skip to descent (<span data-code="KeyK">K</span>)</button>
         <span id="fightbtns" class="stick" hidden><button class="hold" id="b-gun">Gun (Space)</button><button class="hold" id="b-msl">Missile (<span data-code="KeyF">F</span>)</button><button class="hold" id="b-flare">Flares (<span data-code="KeyG">G</span>)</button><button class="hold" id="b-tgt">Target (<span data-code="KeyT">T</span>)</button></span>
       </div>
+      <span id="walkbtns" class="stick" hidden><button class="hold" id="w-check">Check in (Space)</button><button class="hold" id="w-up">Stairs up (<span data-code="KeyE">E</span>)</button><button class="hold" id="w-down">Stairs down (<span data-code="KeyQ">Q</span>)</button><button class="hold" id="w-skip">Skip boarding</button></span>
       <label class="throttle" for="thr"><span class="label">Throttle</span><input type="range" id="thr" min="0" max="100" step="5" value="0"><output id="o-thr">0%</output></label>
-      <span class="stick"><button class="hold" id="b-map">Map zoom (<span data-code="KeyM">M</span>)</button><button class="hold" id="b-pause">Pause (<span data-code="KeyP">P</span>)</button><button class="hold" id="b-restart">Restart (<span data-code="KeyR">R</span>)</button><button class="hold tog" id="b-sound" aria-pressed="true">Sound on (<span data-code="KeyN">N</span>)</button></span>
+      <span class="stick sysbtns"><button class="hold" id="b-map">Map zoom (<span data-code="KeyM">M</span>)</button><button class="hold" id="b-pause">Pause (<span data-code="KeyP">P</span>)</button><button class="hold" id="b-restart">Restart (<span data-code="KeyR">R</span>)</button><button class="hold tog" id="b-sound" aria-pressed="true">Sound on (<span data-code="KeyN">N</span>)</button></span>
       <button class="btn ghost" id="back">Back to hangar</button>
     </div>
     <div class="keys" id="keyhelp">
@@ -597,6 +707,63 @@ function makeRandomSituation(s, type, map, seed) {
   for (const x of w.runways) x.num = rwNum(x.hdg);
   return w;
 }
+// ---------- Guard mode: fly the President between real airports, across the sea ----------
+// Airport positions are real (latitude/longitude); the runway is lengthened if the plane needs more.
+// land: a round patch of land around the airport, centre offset [east, north] in km and radius in km, so the coast sits
+// roughly where it really is. Everywhere else is sea.
+const AIRPORTS = {
+  andrews: { name: 'Joint Base Andrews', city: 'Washington, D.C.', lat: 38.811, lon: -76.867, hdg: 10, len: 3353, land: [-150, 0, 300] },
+  stansted: { name: 'London Stansted', city: 'London', lat: 51.885, lon: 0.235, hdg: 43, len: 3049, land: [-200, 0, 260] },
+  travis: { name: 'Travis Air Force Base', city: 'California', lat: 38.263, lon: -121.927, hdg: 34, len: 3353, land: [200, 50, 280] },
+  hickam: { name: 'Joint Base Pearl Harbor-Hickam', city: 'Honolulu, Hawaii', lat: 21.319, lon: -157.922, hdg: 82, len: 3749, land: [0, 15, 22] },
+  yokota: { name: 'Yokota Air Base', city: 'Tokyo', lat: 35.749, lon: 139.348, hdg: 358, len: 3353, land: [-100, 150, 230] }
+};
+const GUARD_ROUTES = {
+  atlantic: { from: 'andrews', to: 'stansted', title: 'Washington to London', sea: 'the Atlantic Ocean' },
+  homebound: { from: 'stansted', to: 'andrews', title: 'London to Washington', sea: 'the Atlantic Ocean' },
+  hawaii: { from: 'travis', to: 'hickam', title: 'California to Hawaii', sea: 'the Pacific Ocean' },
+  japan: { from: 'hickam', to: 'yokota', title: 'Hawaii to Tokyo', sea: 'the Pacific Ocean' }
+};
+// great-circle distance (m) and starting compass bearing (rad) between two airports
+function greatCircle(a, b) {
+  const R = 6371000, f1 = a.lat * DEG, f2 = b.lat * DEG, dl = (b.lon - a.lon) * DEG;
+  const h = Math.sin((f2 - f1) / 2) ** 2 + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) ** 2;
+  const d = 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  const brg = Math.atan2(Math.sin(dl) * Math.cos(f2), Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl));
+  return { d, brg };
+}
+function guardCruise(s) { return Math.min(9000, s.ceiling - 1500); }
+// a steady cruising speed (true airspeed) at cruise height: comfortably above the stall up there
+function guardSpeed(s) { const hc = guardCruise(s); return Math.max(s.vStall * 1.6, Math.min(s.vMax * 0.75, s.vStall * 1.35 * Math.exp(hc / 17000) * 1.25)); }
+function makeGuardWorld(s, routeId, seed) {
+  const R0 = GUARD_ROUTES[routeId] || GUARD_ROUTES.atlantic, A = AIRPORTS[R0.from], B = AIRPORTS[R0.to];
+  const gc = greatCircle(A, B), wid = Math.max(45, s.rwyWid);
+  const place = (ap, ce, cn, kind) => { const hdg = ap.hdg * DEG, len = Math.max(ap.len, kind === 'home' ? s.homeLen : s.rwyLen);
+    return { e: ce - Math.sin(hdg) * len / 2, n: cn - Math.cos(hdg) * len / 2, hdg, len, wid, kind, name: ap.name, city: ap.city, elev: 0, realLen: ap.len }; };
+  const home = place(A, 0, 0, 'home'), tgt = place(B, Math.sin(gc.brg) * gc.d, Math.cos(gc.brg) * gc.d, 'target');
+  const blobs = [[A, 0, 0], [B, Math.sin(gc.brg) * gc.d, Math.cos(gc.brg) * gc.d]].map(([ap, e, n]) => ({ e: e + ap.land[0] * 1000, n: n + ap.land[1] * 1000, r: ap.land[2] * 1000 }));
+  // a wobbly coastline, so the shore is not a perfect circle
+  const landAt = (e, n) => blobs.some(b => { const a = Math.atan2(e - b.e, n - b.n); return Math.hypot(e - b.e, n - b.n) < b.r * (1 + 0.08 * Math.sin(a * 5) + 0.05 * Math.sin(a * 11 + 1)); });
+  const cruiseAlt = guardCruise(s), cruiseV = guardSpeed(s);
+  // fuel: real long-haul jets burn slowly enough to cross an ocean; scale the burn so a full tank lands with about 40% left
+  const tCruise = gc.d / cruiseV, burnMul = Math.min(1, s.fuel * 0.6 / (tCruise * 0.75 * s.burn));
+  const w = seaWorld([home, tgt], tgt, landAt, { mode: 'guard', guard: routeId, route: R0, dist: gc.d, cruiseAlt, cruiseV, burnMul, from: A, to: B });
+  for (const x of w.runways) x.num = rwNum(x.hdg);
+  return w;
+}
+// Skip the long, quiet middle of the flight: jump ahead along the route to just before the descent point,
+// using up the time and fuel that stretch would really take. Returns the distance skipped (m), or 0 if not now.
+function cruiseSkip(f, s, g) {
+  if (f.ground || !g || g.phase !== 'cruise' || g.captured) return 0;
+  const v = Math.hypot(f.vx, f.vy), keep = g.todDist + 40000, dist = g.dtg - g.Ff - keep;
+  if (dist < 30000 || v < s.vStall) return 0;
+  const [ae, an] = g.faf, de = ae - f.e, dn = an - f.n, L = Math.hypot(de, dn), k = Math.min(1, dist / L);
+  const vc = f.world.cruiseV || v, secs = dist / vc, used = 0.75 * s.burn * (f.world.burnMul || 1) * secs;
+  if (used >= f.fuel) return 0;
+  f.e += de * k; f.n += dn * k; f.psi = Math.atan2(de, dn); f.phi = 0; f.slip = 0;
+  f.fuel -= used; f.t += secs; f.x += dist; f.skipped = (f.skipped || 0) + secs;
+  return dist;
+}
 function makeWorld(s, seed, mode) { return mode === 'free' ? makeFreeWorld(s, seed) : mode === 'challenge' ? makeMountainWorld(s, seed) : makeMissionWorld(s, seed); }
 const smooth = (e0, e1, x) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -680,7 +847,8 @@ function runwayAt(world, e, n) {
 function finalLen(s) { const pp = pathParams(s); return Math.max(6000, Math.min(14000, 1.3 * pp.cruise / Math.tan(pp.gs))); }
 
 function newFlight(s, world, seed) {
-  return { x: 0, e: 0, n: 0, psi: 0, phi: 0, h: 0, vx: 0, vy: 0, theta: 0, throttle: 0, flaps: 1, flapSet: 1, brake: 0, fuel: s.fuel, ground: true, world,
+  const h0 = world.home || { e: 0, n: 0, hdg: 0 };   // line up at the start of the home runway
+  return { x: 0, e: h0.e, n: h0.n, psi: h0.hdg, phi: 0, h: 0, vx: 0, vy: 0, theta: 0, throttle: 0, flaps: 1, flapSet: 1, brake: 0, fuel: s.fuel, ground: true, world,
     flew: false, t: 0, maxH: 0, maxV: 0, maxN: 1, gust: 0, stalled: false, n_: 1, nLoad: 1, alpha: 0, touchVy: 0, result: null,
     slip: 0, scrape: 0, rng: makeRng(subSeed(seed, 9)) };
 }
@@ -798,7 +966,7 @@ function stepFlight(f, s, input, dt) {
   const gnd = groundAt(f.world, f.e, f.n); f.gnd = gnd; f.agl = f.h - gnd;
   if (f.ground && f.world.water && f.world.water(f.e, f.n) && !runwayAt(f.world, f.e, f.n)) { f.result = { kind: 'crash', why: 'You rolled off the end into the water. Next time land nearer the start and use the brakes.' }; return; }
   if (f.ground) { f.h = gnd; f.agl = 0; if (!safeGround(f.world, f.e, f.n, gnd)) { f.result = { kind: 'crash', why: 'Rolled off the runway and down the mountainside.' }; return; } }
-  if (f.fuel > 0) f.fuel = Math.max(0, f.fuel - Math.max(f.throttle, f.reverse && f.ground ? 0.6 : 0) * s.burn * (ab > 1 ? 3 : 1) * dt);
+  if (f.fuel > 0) f.fuel = Math.max(0, f.fuel - Math.max(f.throttle, f.reverse && f.ground ? 0.6 : 0) * s.burn * (ab > 1 ? 3 : 1) * (f.world.burnMul || 1) * dt);
   f.t += dt; f.alpha = alpha; f.stalled = c.stalled && !f.ground;
   f.nLoad = L / (mass * G);
   if (!f.ground && f.agl > 2) f.flew = true;
@@ -850,6 +1018,7 @@ function stepFlight(f, s, input, dt) {
       else if (w === tg && td.ang >= 20) f.result = { kind: 'landed', why: `You touched down across the runway (${Math.round(td.ang)}° off). Line up with the centre line before landing.` };
       else if (onTarget && w.kind === 'carrier') f.result = { kind: 'win', why: `Trap! You caught the arrestor wire and stopped on the carrier deck. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
       else if (onTarget && f.world.mode === 'situation' && f.world.situation === 'himalaya') f.result = { kind: 'win', why: `You landed in the Himalayas at ${tg.name}, ${tg.elev} m up! Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
+      else if (onTarget && f.world.mode === 'guard') f.result = { kind: 'win', why: `Air Force One is down safely at ${tg.name} (${tg.city}). Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
       else if (onTarget && f.world.timeLimit && f.t > f.world.timeLimit) f.result = { kind: 'landed', why: `You landed at ${tg.name}, but ${Math.round(f.t - f.world.timeLimit)} s too late. Fly faster and take the shortest route.` };
       else if (onTarget) f.result = { kind: 'win', why: f.world.mode === 'challenge' ? `You landed in the mountains! Runway ${tg.num} at ${tg.name}, ${tg.elev} m up. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` : `You stopped on runway ${tg.num} at ${tg.name}. Touchdown sink rate ${f.touchVy.toFixed(1)} m/s.` };
       else if (td.rw && td.rw.kind === 'fake') f.result = { kind: 'decoy', why: `That was a closed decoy strip, ${km} the real target.` };
@@ -890,7 +1059,7 @@ function guide(f, s) {
     wantHdg = wrap(wantHdg + Math.asin(Math.max(-0.8, Math.min(0.8, -wp / v))));
   }
   const turn = f.ground ? 0 : wrap(wantHdg - f.psi) / DEG;
-  const Hr = tg.elev || 0, cr = cruise + Hr, agl = f.agl === undefined ? f.h : f.agl;
+  const Hr = tg.elev || 0, cr = (f.world.cruiseAlt || cruise) + Hr, agl = f.agl === undefined ? f.h : f.agl;
   const lift = Math.min(home.len * 0.8, Math.max(40, s.roll));
   const alt = (odo, d) => Math.min(cr, Math.max(0, odo - lift) * Math.tan(climb), Hr + Math.max(0, d) * Math.tan(gs));
   const todDist = (Math.max(cr, f.h) - Hr) / Math.tan(gs), tocOdo = lift + cr / Math.tan(climb);
@@ -899,7 +1068,7 @@ function guide(f, s) {
   let want = Math.atan2(alt(f.x + lk, dtg - lk) - f.h, lk) / DEG, phase;
   if (f.ground) { phase = f.flew ? 'rollout' : 'takeoff'; want = !f.flew && v > s.vLift ? Math.min(climbDeg, 8) : 0; }
   else if (captured && !tg.arrest && agl < Math.max(12, -f.vy * 3.5) && along < 900) { phase = 'flare'; want = s.aero ? -1.5 : s.vStallF < 40 ? -Math.max(1.2, Math.min(gsDeg * 0.8, agl * 0.45)) : -0.8; }
-  else if (f.flew && along < 0 && !captured) { phase = 'goaround'; }
+  else if (f.flew && along < 0 && !captured && Math.hypot(f.e - tg.e, f.n - tg.n) < 40000) { phase = 'goaround'; }   // past the runway (not on a long trip that just starts out behind it)
   else if (dtg < todDist) phase = 'approach';
   else if (f.x < tocOdo && f.h < cr - 20) phase = 'climb';
   else phase = 'cruise';
@@ -995,13 +1164,99 @@ const REAL = {
   yak3: { name: 'Yakovlev Yak-3', role: 'WWII fighter (Soviet Union)', year: 1944, fixed: true, freeOnly: true, span: 9.2, S: 14.85, length: 8.5, width: 1.0, height: 1.5,
     mass: 2690, fuel: 300, engine: 'prop', power: 960, vThrustMin: 48, props: 'nose', cd0: 0.021, nlim: 12, clmax: 1.45, flapCl: 0.5, incidence: 2,
     tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 },
+  // Battle mode aircraft (free fly only for the player; Battle mode also flies them)
+  hurricane: { name: 'Hawker Hurricane Mk I', role: 'WWII fighter (Britain)', year: 1937, fixed: true, freeOnly: true, span: 12.19, S: 23.9, length: 9.84, width: 1.1, height: 1.7,
+    mass: 3000, fuel: 300, engine: 'prop', power: 768, vThrustMin: 46, props: 'nose', cd0: 0.025, nlim: 12, clmax: 1.5, flapCl: 0.6, incidence: 2,
+    tail: 'medium', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 75, ceiling: 8000 },
+  bf109: { name: 'Messerschmitt Bf 109 E', role: 'WWII fighter (Germany)', year: 1939, fixed: true, freeOnly: true, span: 9.87, S: 16.05, length: 8.76, width: 1.0, height: 1.5,
+    mass: 2510, fuel: 300, engine: 'prop', power: 860, vThrustMin: 46, props: 'nose', cd0: 0.023, nlim: 12, clmax: 1.45, flapCl: 0.5, incidence: 2,
+    tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 80, ceiling: 8000 },
+  he111: { name: 'Heinkel He 111 H', role: 'WWII medium bomber (Germany)', year: 1939, fixed: true, freeOnly: true, span: 22.6, S: 87.6, length: 16.4, width: 1.8, height: 2.2,
+    mass: 12000, fuel: 2000, engine: 'prop', power: 2014, vThrustMin: 55, props: 'wing2', cd0: 0.027, nlim: 3.75, clmax: 1.5, flapCl: 0.6, incidence: 3,
+    tail: 'large', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.45, wing: 'low', tailWheel: true, ceiling: 6500, maxBank: 40 },
+  ju87: { name: 'Junkers Ju 87 Stuka', role: 'WWII dive bomber (Germany)', year: 1937, fixed: true, freeOnly: true, span: 13.8, S: 31.9, length: 11.1, width: 1.2, height: 1.8,
+    mass: 4300, fuel: 400, engine: 'prop', power: 1000, vThrustMin: 46, props: 'nose', cd0: 0.03, nlim: 12, clmax: 1.5, flapCl: 0.7, incidence: 2,
+    tail: 'medium', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', fixedGear: true, ceiling: 7000, brakeCd: 0.17 },
+  la5: { name: 'Lavochkin La-5FN', role: 'WWII fighter (Soviet Union)', year: 1943, fixed: true, freeOnly: true, span: 9.8, S: 17.5, length: 8.67, width: 1.3, height: 1.6,
+    mass: 3360, fuel: 350, engine: 'prop', power: 1380, vThrustMin: 50, props: 'nose', cd0: 0.023, nlim: 12, clmax: 1.5, flapCl: 0.5, incidence: 2,
+    tail: 'small', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 },
+  f6f: { name: 'Grumman F6F-5 Hellcat', role: 'WWII carrier fighter (USA)', year: 1943, fixed: true, freeOnly: true, span: 13.06, S: 31.0, length: 10.24, width: 1.4, height: 1.8,
+    mass: 5700, fuel: 750, engine: 'prop', power: 1491, vThrustMin: 50, props: 'nose', cd0: 0.023, nlim: 11, clmax: 1.55, flapCl: 0.6, incidence: 2,
+    tail: 'medium', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'mid', tailWheel: true, maxBank: 75, rollRate: 75, ceiling: 8000 },
+  p47: { name: 'Republic P-47D Thunderbolt', role: 'WWII fighter (USA)', year: 1943, fixed: true, freeOnly: true, span: 12.42, S: 27.87, length: 11.0, width: 1.5, height: 1.9,
+    mass: 6600, fuel: 900, engine: 'prop', power: 1715, vThrustMin: 52, props: 'nose', cd0: 0.021, nlim: 12, clmax: 1.45, flapCl: 0.6, incidence: 2,
+    tail: 'medium', shape: 'rounded', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 80, ceiling: 9000 },
+  f86: { name: 'North American F-86F Sabre', role: 'Korean War jet fighter (USA)', year: 1952, fixed: true, freeOnly: true, span: 11.3, S: 28.1, length: 11.4, width: 1.5, height: 1.6,
+    mass: 6800, fuel: 1300, engine: 'jet', thrust: 26300, jets: 1, cd0: 0.019, nlim: 11, clmax: 1.4, flapCl: 0.5, incidence: 1.5,
+    tail: 'medium', shape: 'sleek', material: 'alu', sweep: 35, taper: 0.5, wing: 'low', pods: [], maxBank: 75, rollRate: 100, ceiling: 13000 },
+  mig15: { name: 'Mikoyan-Gurevich MiG-15bis', role: 'Korean War jet fighter (Soviet Union)', year: 1950, fixed: true, freeOnly: true, span: 10.08, S: 20.6, length: 10.11, width: 1.5, height: 1.6,
+    mass: 4960, fuel: 1000, engine: 'jet', thrust: 26500, jets: 1, cd0: 0.02, nlim: 11, clmax: 1.3, flapCl: 0.4, incidence: 1.5,
+    tail: 'medium', shape: 'rounded', material: 'alu', sweep: 35, taper: 0.55, wing: 'mid', tallFin: true, pods: [], maxBank: 75, rollRate: 90, ceiling: 15000 },
+  f15: { name: 'McDonnell Douglas F-15C Eagle', role: 'Air superiority fighter (USA)', year: 1979, fixed: true, freeOnly: true, span: 13.05, S: 56.5, length: 19.43, width: 3.0, height: 2.6,
+    mass: 20200, fuel: 5000, engine: 'jet', thrust: 129800, abMult: 1.63, jets: 2, cd0: 0.021, nlim: 13.5, clmax: 1.35, flapCl: 0.3, incidence: 1.5,
+    tail: 'medium', shape: 'sleek', material: 'alu', sweep: 45, taper: 0.25, wingY: 0.4, wing: 'high', tallFin: true, twinFin: true, pods: [], ceiling: 15000 },
+  mig21: { name: 'Mikoyan-Gurevich MiG-21bis', role: 'Jet fighter (Soviet Union)', year: 1972, fixed: true, freeOnly: true, span: 7.15, S: 23.0, length: 14.7, width: 1.4, height: 1.8,
+    mass: 8700, fuel: 2000, engine: 'jet', thrust: 40200, abMult: 1.73, jets: 1, cd0: 0.021, nlim: 12, clmax: 1.2, flapCl: 0.3, incidence: 1.5,
+    tail: 'medium', shape: 'sleek', material: 'alu', sweep: 57, taper: 0.1, wing: 'mid', tallFin: true, pods: [], ceiling: 15000 },
+  mig29: { name: 'Mikoyan MiG-29', role: 'Jet fighter (Soviet Union)', year: 1983, fixed: true, freeOnly: true, span: 11.36, S: 38.0, length: 17.32, width: 2.8, height: 2.4,
+    mass: 15000, fuel: 3500, engine: 'jet', thrust: 100000, abMult: 1.63, jets: 2, cd0: 0.021, nlim: 13.5, clmax: 1.35, flapCl: 0.3, incidence: 1.5,
+    tail: 'medium', shape: 'sleek', material: 'alu', sweep: 42, taper: 0.25, wingY: 0.4, wing: 'mid', tallFin: true, twinFin: true, pods: [], ceiling: 15000 },
   an225: { name: 'Antonov An-225 Mriya', role: 'Biggest plane ever built', year: 1988, fixed: true, freeOnly: true, span: 88.4, S: 905, length: 84.0, width: 6.4, height: 7.0,
     mass: 600000, fuel: 150000, engine: 'jet', thrust: 1377000, jets: 6, cd0: 0.021, nlim: 3.75, clmax: 1.6, flapCl: 1.1, incidence: 2.5,
     tail: 'large', shape: 'rounded', material: 'alu', sweep: 30, wing: 'high', twinFin: true },
   b121: { name: 'B-121 Sky Fortress', role: 'Giant bomber (made up for the game)', year: 0, fixed: true, madeUp: true, freeOnly: true, span: 350, S: 18000, length: 304.8, width: 22, height: 24.4, finH: 7.6,
     mass: 5000000, fuel: 1000000, engine: 'jet', thrust: 15000000, jets: 24, pods: [0.12, 0.22, 0.32, 0.42, 0.52, 0.62].map(y => ({ y, w: 7, l: 18 })), cd0: 0.02, nlim: 3.75, clmax: 1.5, flapCl: 0.8, incidence: 3,
-    tail: 'large', shape: 'boxy', material: 'carbon', sweep: 30, taper: 0.3, wing: 'high', ceiling: 9000, maxBank: 35 }
+    tail: 'large', shape: 'boxy', material: 'carbon', sweep: 30, taper: 0.3, wing: 'high', ceiling: 9000, maxBank: 35 },
+  // B-121 family: same giant airframe, three full decks inside. The B is a flying presidential palace; the C carries passengers.
+  // Their deck plans (INTERIOR, below) are built for a future walk-around mode; for now the hangar shows them as a cutaway.
+  b121b: { name: 'B-121B Sky Palace', role: 'Three-deck presidential jet (made up for the game)', year: 0, fixed: true, madeUp: true, freeOnly: true, decks: 3, span: 330, S: 16000, length: 280, width: 22, height: 24.4, finH: 7.6,
+    mass: 3600000, fuel: 700000, engine: 'jet', thrust: 11000000, jets: 20, pods: [0.12, 0.22, 0.32, 0.42, 0.52].map(y => ({ y, w: 7, l: 18 })), cd0: 0.02, nlim: 3.75, clmax: 1.5, flapCl: 0.8, incidence: 3,
+    tail: 'large', shape: 'rounded', material: 'carbon', sweep: 30, taper: 0.3, wing: 'low', ceiling: 12000, maxBank: 35 },
+  b121c: { name: 'B-121C Sky Liner', role: 'Three-deck airliner (made up for the game)', year: 0, fixed: true, madeUp: true, freeOnly: true, decks: 3, span: 350, S: 18000, length: 304.8, width: 22, height: 24.4, finH: 7.6,
+    mass: 4200000, fuel: 800000, engine: 'jet', thrust: 12600000, jets: 24, pods: [0.12, 0.22, 0.32, 0.42, 0.52, 0.62].map(y => ({ y, w: 7, l: 18 })), cd0: 0.019, nlim: 3.75, clmax: 1.5, flapCl: 0.9, incidence: 3,
+    tail: 'large', shape: 'rounded', material: 'carbon', sweep: 30, taper: 0.3, wing: 'low', ceiling: 12000, maxBank: 35 }
 };
+
+// Deck plans. Each room is [name, from, to, kind] with from/to as fractions of the fuselage length, measured from the nose.
+// Seat rooms add { abreast, pitch } (seats across, metres per row) so the seat count comes from the room size.
+// kind: cockpit, office, suite, meet, staff, crew, galley, medical, seats, lounge, tech, cargo, stairs, lift
+const INTERIOR = {
+  b121b: { decks: [
+    { name: 'Upper deck', note: 'The President\'s deck', rooms: [
+      ['Flight deck', 0.03, 0.08, 'cockpit'], ['Pilots\' rest', 0.08, 0.12, 'crew'], ['Stairs', 0.12, 0.14, 'stairs'],
+      ['Presidential suite', 0.14, 0.26, 'suite'], ['President\'s office', 0.26, 0.34, 'office'], ['Conference room', 0.34, 0.44, 'meet'],
+      ['Situation room', 0.44, 0.52, 'meet'], ['Lift', 0.52, 0.54, 'lift'], ['Chief of staff', 0.54, 0.60, 'office'],
+      ['Senior advisers', 0.60, 0.70, 'staff'], ['Observation lounge', 0.70, 0.80, 'lounge'], ['Stairs', 0.80, 0.82, 'stairs'] ] },
+    { name: 'Main deck', note: 'Staff, guests and press', rooms: [
+      ['Galley', 0.04, 0.10, 'galley'], ['Stairs', 0.12, 0.14, 'stairs'], ['Dining room', 0.14, 0.22, 'lounge'], ['Medical centre', 0.22, 0.30, 'medical'],
+      ['Staff offices', 0.30, 0.42, 'staff'], ['Guest cabin', 0.42, 0.52, 'seats', { abreast: 6, pitch: 1.6 }], ['Lift', 0.52, 0.54, 'lift'],
+      ['Security team', 0.54, 0.60, 'crew'], ['Press cabin', 0.60, 0.70, 'seats', { abreast: 8, pitch: 1.0 }], ['Gym', 0.70, 0.76, 'lounge'],
+      ['Crew quarters', 0.76, 0.80, 'crew'], ['Stairs', 0.80, 0.82, 'stairs'], ['Rear galley', 0.82, 0.88, 'galley'] ] },
+    { name: 'Lower deck', note: 'Systems and cargo', rooms: [
+      ['Nose gear bay', 0.06, 0.12, 'tech'], ['Stairs', 0.12, 0.14, 'stairs'], ['Communications centre', 0.14, 0.26, 'tech'],
+      ['Computer room', 0.26, 0.32, 'tech'], ['Baggage hold', 0.32, 0.42, 'cargo'], ['Main gear bays', 0.42, 0.52, 'tech'], ['Lift', 0.52, 0.54, 'lift'],
+      ['Car garage', 0.54, 0.72, 'cargo'], ['Spare-parts store', 0.72, 0.80, 'cargo'], ['Stairs', 0.80, 0.82, 'stairs'], ['Rear cargo ramp', 0.82, 0.90, 'cargo'] ] }
+  ] },
+  b121c: { decks: [
+    { name: 'Upper deck', note: 'First class', rooms: [
+      ['Flight deck', 0.03, 0.08, 'cockpit'], ['Crew rest', 0.08, 0.11, 'crew'], ['Stairs', 0.11, 0.13, 'stairs'],
+      ['First class suites', 0.13, 0.33, 'seats', { abreast: 6, pitch: 2.4 }], ['Bar and lounge', 0.33, 0.39, 'lounge'], ['Galley', 0.39, 0.42, 'galley'],
+      ['Lift', 0.42, 0.44, 'lift'], ['First class suites', 0.44, 0.64, 'seats', { abreast: 6, pitch: 2.4 }], ['Sky deck view lounge', 0.64, 0.74, 'lounge'],
+      ['Stairs', 0.74, 0.76, 'stairs'] ] },
+    { name: 'Main deck', note: 'Business and premium economy', rooms: [
+      ['Galley', 0.05, 0.10, 'galley'], ['Stairs', 0.11, 0.13, 'stairs'], ['Business class', 0.13, 0.38, 'seats', { abreast: 10, pitch: 1.6 }],
+      ['Galley', 0.38, 0.42, 'galley'], ['Lift', 0.42, 0.44, 'lift'], ['Premium economy', 0.44, 0.74, 'seats', { abreast: 14, pitch: 1.0 }],
+      ['Stairs', 0.74, 0.76, 'stairs'], ['Galley', 0.76, 0.80, 'galley'], ['Premium economy', 0.80, 0.88, 'seats', { abreast: 14, pitch: 1.0 }] ] },
+    { name: 'Lower deck', note: 'Economy, with the cargo below the wing', rooms: [
+      ['Nose gear bay', 0.06, 0.11, 'tech'], ['Stairs', 0.11, 0.13, 'stairs'], ['Economy', 0.13, 0.36, 'seats', { abreast: 16, pitch: 0.8 }],
+      ['Cargo hold', 0.36, 0.42, 'cargo'], ['Lift', 0.42, 0.44, 'lift'], ['Main gear bays', 0.44, 0.54, 'tech'],
+      ['Economy', 0.54, 0.74, 'seats', { abreast: 16, pitch: 0.8 }], ['Stairs', 0.74, 0.76, 'stairs'], ['Baggage hold', 0.76, 0.88, 'cargo'] ] }
+  ] }
+};
+for (const k in INTERIOR) REAL[k].interior = INTERIOR[k];
+// seats in one room: whole rows that fit in its length, times seats per row
+REAL.seatsIn = (len, room) => room[4] ? Math.floor((room[2] - room[1]) * len / room[4].pitch) * room[4].abreast : 0;
+Object.defineProperty(REAL, 'seatsIn', { enumerable: false });
 
 
 
@@ -1079,7 +1334,7 @@ function drawSlots() {
   }
 }
 let settings = loadJSON('wingwright-settings') || {};
-function saveSettings() { saveJSON('wingwright-settings', { viewMode, mapWide, gameMode, mode: pick ? pick.mode : mode, realKey: pick ? pick.realKey : realKey, coach: $('coachopt').checked, sound: typeof sound !== 'undefined' ? sound.on : settings.sound }); }
+function saveSettings() { saveJSON('wingwright-settings', { viewMode, mapWide, gameMode, mode: pick ? pick.mode : mode, realKey: pick ? pick.realKey : realKey, coach: $('coachopt').checked, controls: (document.querySelector('input[name=ctl]:checked') || {}).value, sound: typeof sound !== 'undefined' ? sound.on : settings.sound }); }
 
 function load(p) {
   plane = { ...p };
@@ -1288,19 +1543,19 @@ new MutationObserver(() => { if (!$('hangar').hidden) drawPlan(); }).observe(doc
 
 let stats = { wins: 0 };
 try { stats = JSON.parse(localStorage.getItem('wingwright-stats') || 'null') || stats; } catch (e) {}
-function showBest() { const g = typeof gameMode === 'undefined' ? 'mission' : gameMode; if (g === 'situation') { $('best').textContent = `Classics done: ${Object.keys(stats.sits || {}).length} of 5 · random ones handled: ${stats.newSits || 0}`; return; } if (g === 'fight') { const n = stats[`w_${fightKind}_${fightSize}`] || 0; $('best').textContent = stats.fightWins ? `Won at this size: ${n} · all battles: ${stats.fightWins}` : 'Win a battle to start your record.'; return; } if (g === 'stunt') { $('best').textContent = stats.stuntBest ? `Best display score: ${stats.stuntBest}` : 'Fly the full routine to set a score.'; return; } $('best').textContent = g === 'challenge' ? (stats.peaks ? `Mountain landings: ${stats.peaks}` : 'Land on the mountain runway to beat the challenge.') : g === 'free' ? (stats.free ? `Free-fly landings so far: ${stats.free}` : 'Land anywhere you like.') : (stats.wins ? `Missions completed: ${stats.wins}` : 'Land on the target runway to complete a mission.'); }
+function showBest() { const g = typeof gameMode === 'undefined' ? 'mission' : gameMode; if (g === 'battle') { const n = Object.keys(stats.battles || {}).length; $('best').textContent = n ? `Battles won: ${n} of 10` : 'Win a battle to start your record.'; return; } if (g === 'guard') { $('best').textContent = stats.guard ? `Presidents delivered: ${stats.guard}` + (stats.boardBest ? ` · fastest boarding ${mmss(stats.boardBest)}` : '') : 'Deliver the President safely to start your record.'; return; } if (g === 'situation') { $('best').textContent = `Classics done: ${Object.keys(stats.sits || {}).length} of 5 · random ones handled: ${stats.newSits || 0}`; return; } if (g === 'fight') { const n = stats[`w_${fightKind}_${fightSize}`] || 0; $('best').textContent = stats.fightWins ? `Won at this size: ${n} · all battles: ${stats.fightWins}` : 'Win a battle to start your record.'; return; } if (g === 'stunt') { $('best').textContent = stats.stuntBest ? `Best display score: ${stats.stuntBest}` : 'Fly the full routine to set a score.'; return; } $('best').textContent = g === 'challenge' ? (stats.peaks ? `Mountain landings: ${stats.peaks}` : 'Land on the mountain runway to beat the challenge.') : g === 'free' ? (stats.free ? `Free-fly landings so far: ${stats.free}` : 'Land anywhere you like.') : (stats.wins ? `Missions completed: ${stats.wins}` : 'Land on the target runway to complete a mission.'); }
 showBest();
 
 // ===== Flight =====
 var gameMode = 'mission', landSeen = 0, pickT = 0;
-const MODEHINT = { situation: 'Five real-life situations, each with its own map and plane. Pick one below.', fight: 'Three kinds of battle: modern jets (F-35 or F-22), a bomber run (B-17, B-29, SBD Dauntless, B-52, the giant made-up B-121, B-1B or B-2) or a WW2 dogfight for Britain, the USA, the Soviet Union, Germany or Japan.', stunt: 'Fly the Extra 330SC in a four-plane display team and perform a scored routine of solo and group stunts.', mission: 'Find the real target runway among closed decoy strips and land on it.', challenge: 'The target is high in the mountains. Climb over the foothills, turn into the valley and land on the plateau. Touching a mountainside is a crash.', free: 'No target and no failing. Open airfields all around: land on any runway or field, take off again and explore.' };
-const MODEBTN = { mission: 'Start mission', challenge: 'Start challenge', free: 'Start free flight', situation: 'Start situation', fight: 'Start fight', stunt: 'Start display' };
-const SPECIAL = ['situation', 'fight', 'stunt'];   // modes that bring their own plane
+const MODEHINT = { battle: 'Ten of the biggest air battles in history, from the Battle of Britain to Desert Storm. Each one has its own planes, sides and job: stop a bomber raid, escort your bombers, bomb a fleet or win a dogfight.', guard: 'You are the pilot of Air Force One (the made-up B-121B Sky Palace). Board from the tail ramp, walk through the plane past every security checkpoint up to the flight deck, then fly the President between real airports across the ocean.', situation: 'Five real-life situations, each with its own map and plane. Pick one below.', fight: 'Three kinds of battle: modern jets (F-35 or F-22), a bomber run (B-17, B-29, SBD Dauntless, B-52, the giant made-up B-121, B-1B or B-2) or a WW2 dogfight for Britain, the USA, the Soviet Union, Germany or Japan.', stunt: 'Fly the Extra 330SC in a four-plane display team and perform a scored routine of solo and group stunts.', mission: 'Find the real target runway among closed decoy strips and land on it.', challenge: 'The target is high in the mountains. Climb over the foothills, turn into the valley and land on the plateau. Touching a mountainside is a crash.', free: 'No target and no failing. Open airfields all around: land on any runway or field, take off again and explore.' };
+const MODEBTN = { mission: 'Start mission', challenge: 'Start challenge', free: 'Start free flight', situation: 'Start situation', fight: 'Start fight', stunt: 'Start display', guard: 'Start guard duty', battle: 'Start battle' };
+const SPECIAL = ['situation', 'fight', 'stunt', 'guard', 'battle'];   // modes that bring their own plane
 function restorePick(p) {
   if (p.mode === 'custom') { mode = 'custom'; load(p.design); setMode('custom'); }
   else { realKey = p.realKey; setMode('real'); markFleet(); }
 }
-const MODEKEYS = { fight: 'Keys: Space gun or bombs · F missile · T next target · G flares · 4 bomb run autopilot.', stunt: 'Keys: hold Nose up to loop, Left or Right to roll.', situation: 'Over the sea: J bails out.' };
+const MODEKEYS = { battle: 'Keys: Space guns (or bombs) · T next target · F missile and G flares in the jet battles.', guard: 'Boarding: arrow keys walk, Space checks in, E and Q take the stairs up and down. Flying: K skips the long cruise.', fight: 'Keys: Space gun or bombs · F missile · T next target · G flares · 4 bomb run autopilot.', stunt: 'Keys: hold Nose up to loop, Left or Right to roll.', situation: 'Over the sea: J bails out.' };
 function setGameMode(m) {
   const was = gameMode; gameMode = m;
   if (SPECIAL.includes(m) && !SPECIAL.includes(was) && !pick) pick = { mode, realKey, design: { ...lastCustom } };
@@ -1345,9 +1600,11 @@ function startFlight(newMission) {
       else rolled = { classic: sitId };
     }
     usePlane(rolled.classic ? SITS[rolled.classic].plane : rolled.plane);
-  } else if (gameMode === 'fight') usePlane(fightPlane()); else if (gameMode === 'stunt') usePlane('extra');
+  } else if (gameMode === 'fight') usePlane(fightPlane()); else if (gameMode === 'stunt') usePlane('extra'); else if (gameMode === 'guard') usePlane('b121b'); else if (gameMode === 'battle') usePlane(battlePlane());
   others = []; fight = null; team = null;
-  if (gameMode === 'situation') world = rolled.classic ? makeSituationWorld(spec, rolled.classic, worldSeed) : makeRandomSituation(spec, rolled.type, rolled.map, worldSeed);
+  if (gameMode === 'guard') world = makeGuardWorld(spec, guardRoute, worldSeed);
+  else if (gameMode === 'battle') { const BT = battleNow(); world = battleWorld(BT); world.ceilAdd = Math.max(0, (BT.jets ? 12000 : 8000) - spec.ceiling); world.mode = 'fight'; world.free = false; world.target = world.home; world.battle = battleId; }
+  else if (gameMode === 'situation') world = rolled.classic ? makeSituationWorld(spec, rolled.classic, worldSeed) : makeRandomSituation(spec, rolled.type, rolled.map, worldSeed);
   else { world = gameMode === 'fight' && fightKind === 'bomber' ? bomberWorld() : makeWorld(spec, worldSeed, ['fight', 'stunt'].includes(gameMode) ? 'free' : gameMode); if (gameMode === 'fight') world.ceilAdd = Math.max(0, 8000 - spec.ceiling); if (gameMode === 'fight' || gameMode === 'stunt') { world.mode = gameMode; world.free = false; world.target = world.home; } }
   const tg = world.target;
   $('hangar').hidden = true; $('flight').hidden = false; $('result').hidden = true;
@@ -1361,6 +1618,10 @@ function startFlight(newMission) {
     const S = SITS[world.situation];
     $('m-title').textContent = S.title;
     $('m-sub').textContent = `${who} · map: ${S.map} · ${S.text}`;
+  } else if (world.mode === 'fight' && world.battle) {
+    const BT = BATTLES[world.battle];
+    $('m-title').textContent = `${BT.title}, ${BT.when}`;
+    $('m-sub').textContent = `${who} for ${BT.side} · ${BT.where} · ${BT.job}`;
   } else if (world.mode === 'fight') {
     if (fightKind === 'bomber') { const B = BOMBERS[bomberKey], nR = [2, 4, 8][[1, 2, 8].indexOf(fightSize)];
       $('m-title').textContent = `Bomber run: ${B.ships ? 'sink the enemy fleet' : 'destroy the enemy base'}`;
@@ -1368,6 +1629,10 @@ function startFlight(newMission) {
     else if (fightKind === 'ww2') { $('m-title').textContent = `WW2 dogfight: ${fightSize} v ${fightSize}`; $('m-sub').textContent = `${who} for ${WW2[ww2Key].name} · guns only: get within 800 m and hold Space · T next target · red boxes are enemies, blue diamonds are your team`; }
     else { $('m-title').textContent = `Fight: ${fightSize} v ${fightSize}`;
     $('m-sub').textContent = `${who} · Space gun · F missile (lock first) · T next target · G flares · red boxes are enemies, blue diamonds are your team`; }
+  } else if (world.mode === 'guard') {
+    const Rt = world.route;
+    $('m-title').textContent = `Guard duty: ${Rt.title}`;
+    $('m-sub').textContent = `${who} as Air Force One · ${world.from.name} to ${world.to.name} · ${Math.round(world.dist / 1000).toLocaleString()} km across ${Rt.sea} · board from the tail first`;
   } else if (world.mode === 'stunt') {
     $('m-title').textContent = 'Stunt team display';
     $('m-sub').textContent = `${who} · you fly on the leader’s left wing · ${STUNTS.filter(s => s.type !== 'rejoin').length} stunts to fly`;
@@ -1382,17 +1647,17 @@ function startFlight(newMission) {
     $('m-title').textContent = `Target: runway ${tg.num}, ${tg.name}`;
     $('m-sub').textContent = `${who} · ${(Math.hypot(tg.e, tg.n) / 1000).toFixed(1)} km away, off to your ${bear < 0 ? 'left' : 'right'} · runway points ${hdgTxt(tg.hdg)} · ${tg.len} m long · ${world.runways.filter(r => r.kind === 'fake').length} closed decoys`;
   }
-  $('l-tgt').textContent = world.mode === 'free' ? 'Nearest field' : world.mode === 'fight' ? (fightKind === 'bomber' ? 'Bomb target' : 'Enemy') : 'To target'; $('g-agl').hidden = !world.terrain; landSeen = 0; pickT = 0;
+  $('l-tgt').textContent = world.mode === 'free' ? 'Nearest field' : world.mode === 'fight' ? (fight_isBomb() ? 'Bomb target' : 'Enemy') : 'To target'; $('g-agl').hidden = !world.terrain; landSeen = 0; pickT = 0;
   flight = newFlight(spec, world, worldSeed); setThrottle(0); for (const k in keys) keys[k] = 0; syncToggles(); $('b-ab').hidden = !spec.abMult; $('g-stunt').hidden = !spec.aero; smoke = []; chaseYaw = 0; if (spec.aero && viewMode === 'cockpit') toggleView();
   if (world.free) { flight.dep = world.home; pickT = 0; }
   if (world.start) airborne(flight, world.start);
-  if (world.mode === 'fight') { startFight(); $('b-gun').textContent = fight.B ? 'Bombs (Space)' : 'Gun (Space)'; $('b-msl').hidden = fight.kind !== 'jets'; $('b-flare').hidden = !fight.flaresLeft; syncToggles(); }
+  if (world.mode === 'fight') { startFight(); if (world.battle) note(BATTLES[world.battle].job, 8); $('b-gun').textContent = fight.B ? 'Bombs (Space)' : 'Gun (Space)'; $('b-msl').hidden = fight.kind !== 'jets'; $('b-flare').hidden = !fight.flaresLeft; syncToggles(); }
   $('b-ap4').textContent = world.mode === 'fight' && fight.B ? 'Bomb run (4)' : 'Landing prep (4)';
   if (world.mode === 'stunt') startStunt();
   $('b-bail').hidden = world.situation !== 'ocean'; $('fightbtns').hidden = world.mode !== 'fight'; $('missile').hidden = true; $('eng').hidden = true; $('eng').textContent = 'ENGINE FAILURE'; $('g-stunt').classList.remove('hot');
   $('pathchart').hidden = world.mode === 'fight' || world.mode === 'stunt';
   const sx = world.sitType, showX = sx === 'wind' || sx === 'medical' || sx === 'fuel';
-  $('g-stunt').hidden = !(spec.aero || world.mode === 'fight' || world.mode === 'stunt' || showX); $('l-stunt').textContent = world.mode === 'fight' ? 'Battle' : world.mode === 'stunt' ? 'Display' : sx === 'wind' ? 'Wind' : sx === 'medical' ? 'Time left' : sx === 'fuel' ? 'Fuel leak' : 'Stunts';
+  $('g-stunt').hidden = !(spec.aero || world.mode === 'fight' || world.mode === 'stunt' || world.mode === 'guard' || showX); $('l-stunt').textContent = world.mode === 'guard' ? 'Trip left' : world.mode === 'fight' ? 'Battle' : world.mode === 'stunt' ? 'Display' : sx === 'wind' ? 'Wind' : sx === 'medical' ? 'Time left' : sx === 'fuel' ? 'Fuel leak' : 'Stunts';
   if ((world.mode === 'fight' || world.mode === 'stunt') && viewMode === 'cockpit' && world.mode === 'stunt') toggleView();
   G0 = guide(flight, spec); D0 = G0.dtg; trail = []; trailT = 0; trailMax = 0;
   $('tip').hidden = false; $('tip').textContent = flight.flew ? (world.situation === 'carrier' ? 'Carrier landing: fly the green line straight into the deck. No flare. The wire will stop you.' : world.situation === 'storm' ? 'Storm! Expect big bumps. Follow the green line and keep your speed up.' : world.situation === 'himalaya' ? 'Follow the green route up the valley. Do not fly over the peaks: watch the terrain warning.' : world.situation === 'ocean' ? 'Cruising over the ocean...' : '') : `Push the throttle up (E). At ${kmh(spec.vLift)} km/h, hold Nose up to lift off.`;
@@ -1401,10 +1666,12 @@ function startFlight(newMission) {
   // controls help: only the parts that matter for this flight
   const helpFor = { all: true, land: !['fight', 'stunt'].includes(world.mode), fast: !!spec.abMult, stunt: spec.aero || world.mode === 'stunt', fight: world.mode === 'fight', ocean: world.situation === 'ocean' };
   document.querySelectorAll('#keyhelp details').forEach(d => { d.hidden = !helpFor[d.dataset.for]; });
+  $('b-skip').hidden = world.mode !== 'guard';
+  walk = world.mode === 'guard' ? newWalk() : null; $('flight').classList.toggle('walking', !!walk); syncWalkButtons(); if (walk) sound.quiet();
   coach = $('coachopt').checked && ['mission', 'challenge', 'free'].includes(world.mode) && !spec.aero && !flight.flew ? { done: COACH.map(() => false) } : null;
   $('coach').hidden = !coach; if (coach) drawCoach();
   wake();
-  $('flight').scrollIntoView({ block: 'start' });
+  (TOUCH ? $('sky') : $('flight')).scrollIntoView({ block: 'start' }); shownTouch.clear(); touchAxis.x = touchAxis.y = 0;
 }
 function setThrottle(v) { v = Math.max(0, Math.min(100, v)); $('thr').value = v; $('o-thr').textContent = v + '%'; if (flight) flight.throttle = v / 100; }
 $('thr').addEventListener('input', e => pilotThrottle(+e.target.value));
@@ -1527,6 +1794,7 @@ function loop(now) {
   raf = requestAnimationFrame(loop);   // schedule the next frame first, so an error can't freeze the game
   const frame = Math.max(0, Math.min(0.25, (now - last) / 1000)); last = now; lastDt = frame;
   try {
+    if (walk && flight) { if (!paused) walkTick(frame); if (walk) { drawWalk(); syncTouch(); return; } }
     if (flight && !flight.result && !paused) {
       simAcc += frame; let n = 0;
       while (simAcc >= STEP && !flight.result) { simAcc -= STEP; tick(STEP); if (++n >= 40) { simAcc = 0; break; } }   // never try to catch up more than 1/3 s
@@ -1537,7 +1805,7 @@ function loop(now) {
       const still = flight.result || paused;
       if (still && drewStill) { cancelAnimationFrame(raf); return; }   // nothing moves behind the results card or the pause: stop drawing
       if (!G0) G0 = guide(flight, spec);
-      render(); hud(); drawMini(); drawChart(); drawHeightMap();
+      render(); hud(); drawMini(); drawChart(); drawHeightMap(); syncTouch();
       if (still) sound.quiet(); else sound.update(flight, spec);
       drewStill = !!still;
     }
@@ -1546,6 +1814,250 @@ function loop(now) {
 function wake() { drewStill = false; cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop); }
 let glitchShown = false;
 function showGlitch(err) { if (glitchShown) return; glitchShown = true; note('Something went wrong in the game (' + (err && err.message || err) + '). It will keep running; press R twice to restart if it looks stuck.', 10); }
+
+// ---------- phone and tablet controls ----------
+// A joystick for the left thumb (pitch and roll, as far as you push), a throttle lever for the right thumb
+// and big buttons. Computers keep the keyboard and the button row. "Automatic" picks by the kind of screen.
+let TOUCH = false;
+const touchAxis = { x: 0, y: 0, on: false };
+function useTouch() {
+  const pick = (document.querySelector('input[name=ctl]:checked') || {}).value || 'auto';
+  TOUCH = pick === 'touch' || (pick === 'auto' && matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches);
+  document.documentElement.classList.toggle('touch', TOUCH);
+  $('touchui').hidden = !TOUCH;
+  $('ctl-hint').textContent = pick !== 'auto' ? '' : TOUCH ? 'This looks like a phone or tablet: you get the touch joystick and throttle.' : 'This looks like a computer: you fly with the keyboard (or the buttons under the view).';
+  if (flight) sizeAll();
+}
+document.querySelectorAll('input[name=ctl]').forEach(i => i.addEventListener('change', () => { useTouch(); saveSettings(); }));
+// the tips name keyboard keys; on a touch screen say which control to use instead
+function touchText(s) {
+  return s.replace(/press E a few times, or drag Throttle to 100%/g, 'push the throttle lever (bottom right) all the way up')
+    .replace(/Push the throttle up \(E\)/g, 'Push the throttle lever up')
+    .replace(/hold ↑ or W \(Nose up\)/g, 'push the joystick up (nose up)').replace(/using ← → \(A D\)/g, 'with the joystick')
+    .replace(/[Pp]ress 2 \(Flat flaps\)/g, 'tap Flaps until it says 2').replace(/[Pp]ress 2/g, 'tap Flaps until it says 2')
+    .replace(/[Pp]ress 4 for Landing prep/g, 'tap Land prep').replace(/\(Bomb run autopilot: 4\)/g, '(Land prep button: bomb run autopilot)')
+    .replace(/hold Space/g, 'hold Fire').replace(/[Pp]ress Space/g, 'tap Fire').replace(/press G for flares/g, 'tap Flares').replace(/press F to fire a missile/g, 'tap Missile')
+    .replace(/Press K \(Skip to descent\)/g, 'Tap Skip cruise').replace(/press 4 for Landing prep/g, 'tap Land prep').replace(/Throttle up \(E\)/g, 'Push the throttle lever up')
+    .replace(/\(T picks another target\)/g, '(Target picks another)').replace(/[Pp]ress J/g, 'tap Bail out').replace(/brake with B/g, 'tap Brake')
+    .replace(/ \((?:[A-Z]|[A-Z] or [←→]|[DA] or [→←]|Space|Esc|\d)\)/g, '');
+}
+(() => {
+  const pad = $('t-stick'), knob = $('t-knob');
+  let id = null;
+  const move = e => {
+    const r = pad.getBoundingClientRect(), R0 = r.width / 2;
+    let x = (e.clientX - r.left - R0) / (R0 * 0.8), y = (e.clientY - r.top - R0) / (R0 * 0.8);
+    const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
+    const dz = v => Math.abs(v) < 0.1 ? 0 : (v - Math.sign(v) * 0.1) / 0.9;   // small dead zone so the plane flies straight when you rest your thumb
+    touchAxis.x = dz(x); touchAxis.y = dz(-y); touchAxis.on = true;
+    knob.style.transform = `translate(calc(-50% + ${x * R0 * 0.8}px), calc(-50% + ${y * R0 * 0.8}px))`;
+  };
+  const end = e => { if (e.pointerId !== id) return; id = null; touchAxis.x = touchAxis.y = 0; touchAxis.on = false; knob.style.transform = ''; };
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); id = e.pointerId; try { pad.setPointerCapture(id); } catch (x) {} move(e); sound.start(); });
+  pad.addEventListener('pointermove', e => { if (e.pointerId === id) move(e); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, end);
+  // throttle lever: where you touch is the power you get
+  const thr = $('t-thr'); let tid = null;
+  const setThr = e => { const r = thr.getBoundingClientRect(); pilotThrottle(Math.round(Math.max(0, Math.min(1, (r.bottom - e.clientY) / r.height)) * 20) * 5); };
+  thr.addEventListener('pointerdown', e => { e.preventDefault(); tid = e.pointerId; try { thr.setPointerCapture(tid); } catch (x) {} setThr(e); });
+  thr.addEventListener('pointermove', e => { if (e.pointerId === tid) setThr(e); });
+  for (const ev of ['pointerup', 'pointercancel']) thr.addEventListener(ev, e => { if (e.pointerId === tid) tid = null; });
+  // buttons that stand in for the desktop ones; Fire is held down
+  document.querySelectorAll('#touchui .tbtn[data-for]').forEach(b => {
+    if (b.id === 't-fire') {
+      const on = e => { e.preventDefault(); keys.gun = 1; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (x) {} };
+      const off = () => { keys.gun = 0; b.classList.remove('on'); };
+      b.addEventListener('pointerdown', on); for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, off);
+    } else b.addEventListener('click', () => $(b.dataset.for).click());
+  });
+  $('t-flaps').addEventListener('click', () => { if (flight) setFlaps(flight.flapSet % 3 + 1); });
+  $('t-full').hidden = !document.documentElement.requestFullscreen;
+  $('mini').addEventListener('click', () => { if (TOUCH) toggleMap(); });
+  $('t-sound').addEventListener('click', () => { sound.toggle(); $('t-sound').textContent = sound.on ? 'Sound on' : 'Sound off'; });   // on phones, tap the map to zoom it
+  $('t-full').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else $('flight').requestFullscreen().catch(() => {}); });
+})();
+// once a frame: the touch buttons copy what the desktop buttons show (hidden, pressed, labels), and the throttle lever
+const shownTouch = new Map();
+function syncTouch() {
+  if (!TOUCH || !flight) return;
+  document.querySelectorAll('#touchui .tbtn[data-for]').forEach(b => {
+    const d = $(b.dataset.for), hide = !d || !!d.closest('[hidden]'), pressed = d && d.getAttribute('aria-pressed');
+    const key = (hide ? 'h' : 's') + pressed + (d && d.textContent);
+    if (shownTouch.get(b) === key) return; shownTouch.set(b, key);
+    b.hidden = hide; if (pressed) b.setAttribute('aria-pressed', pressed);
+    if (b.dataset.for === 'b-gun') b.textContent = fight && fight.B ? 'Drop bombs' : 'Fire';
+    if (b.dataset.for === 'b-ap4') b.textContent = fight && fight.B ? 'Bomb run' : 'Land prep';
+    if (b.dataset.for === 'b-sound') b.textContent = sound.on ? 'Sound on' : 'Sound off';
+  });
+  const fl = 'Flaps ' + flight.flapSet; if ($('t-flaps').textContent !== fl) $('t-flaps').textContent = fl;
+  const th = Math.round(flight.throttle * 100) + '%';
+  if ($('t-thrtxt').textContent !== th) { $('t-thrtxt').textContent = th; $('t-thrfill').style.height = th; $('t-thr').setAttribute('aria-valuenow', parseInt(th)); }
+  const tip = $('tip'), s = tip.textContent, r = touchText(s); if (r !== s) tip.textContent = r;
+}
+
+// ---------- Guard mode, part 1: boarding. Walk the B-121B from the tail ramp to the flight deck ----------
+// Seen from above, nose on the left. x = metres back from the nose, y = metres across (negative = left side of the screen).
+// The deck plans come from REAL.b121b.interior; walls stand at every room edge, with a door in the middle (the aisle).
+const GUARD_CHECKS = [
+  { d: 2, room: 'Rear cargo ramp', who: 'Ramp guard', ask: 'Show your pass to the ramp guard.', ok: 'Pass checked. Welcome aboard, Captain.' },
+  { d: 2, room: 'Car garage', who: 'Loadmaster', ask: 'Check the President’s cars are chained down.', ok: 'All the cars are chained down tight.' },
+  { d: 2, room: 'Communications centre', who: 'Radio officer', ask: 'Do a radio check with the radio officer.', ok: 'Radios loud and clear. The secure line is up.' },
+  { d: 1, room: 'Medical centre', who: 'Flight doctor', ask: 'Get the flight doctor to sign you fit to fly.', ok: 'Heart rate fine. You are fit to fly.' },
+  { d: 1, room: 'Security team', who: 'Secret Service agent', ask: 'Have your badge scanned by the security team.', ok: 'Badge scanned. Your name is on the list.' },
+  { d: 0, room: 'Situation room', who: 'Mission officer', ask: 'Collect the flight brief in the situation room.', ok: 'Brief received: route, weather and fuel plan.' },
+  { d: 0, room: 'President’s office', who: 'The President', ask: 'Report to the President.', ok: '“Good to have you with us, Captain. Let’s go.”' },
+  { d: 0, room: 'Flight deck', who: 'Co-pilot', ask: 'Take your seat on the flight deck.', ok: 'Seat belt on. Starting the engines.' }
+];
+const WALK_SPEED = 6.5, DOOR = 1.6;
+let walk = null;
+const walkDecks = () => REAL.b121b.interior.decks;
+const roomIn = (d, name) => walkDecks()[d].rooms.find(r => r[0].replace(/'/g, '’') === name);
+function newWalk() {
+  const L = REAL.b121b.length, hw = REAL.b121b.width / 2 - 1, ramp = roomIn(2, 'Rear cargo ramp');
+  const decks = walkDecks().map(dk => {
+    const x0 = Math.min(...dk.rooms.map(r => r[1])) * L, x1 = Math.max(...dk.rooms.map(r => r[2])) * L;
+    const walls = [...new Set(dk.rooms.flatMap(r => [r[1], r[2]]))].map(u => u * L).filter(x => x > x0 + 0.1 && x < x1 - 0.1).sort((a, b) => a - b);
+    return { x0, x1, walls };
+  });
+  const people = GUARD_CHECKS.map((c, i) => { const r = roomIn(c.d, c.room); return { d: c.d, x: (r[1] + r[2]) / 2 * L, y: c.room === 'Flight deck' ? 2.5 : -hw * 0.45, who: c.who, chk: i, boss: c.who === 'The President' }; });
+  // a few more people about the plane, so it doesn't feel empty (always in the same places)
+  walkDecks().forEach((dk, d) => dk.rooms.forEach((r, j) => {
+    if (['stairs', 'lift', 'cockpit', 'tech'].includes(r[3]) || people.some(p => p.d === d && Math.abs(p.x - (r[1] + r[2]) / 2 * L) < 1)) return;
+    const n = r[3] === 'seats' ? 4 : 1 + Math.floor(hash(d, j) * 2);
+    for (let k = 0; k < n; k++) people.push({ d, x: (r[1] + (r[2] - r[1]) * (0.2 + 0.6 * hash(d * 7 + k, j))) * L, y: (hash(j, d * 5 + k) - 0.5) * 2 * (hw - 2.5), who: '' });
+  }));
+  return { d: 2, x: (ramp[1] + ramp[2]) / 2 * L + 4, y: 0, face: Math.PI, cp: 0, t: 0, L, hw, decks, people, msg: '', msgT: 0, flash: 0, done: false };
+}
+function walkSay(text, secs) { walk.msg = text; walk.msgT = walk.t + (secs || 4); }
+function walkTick(dt) {
+  const w = walk; w.t += dt; w.flash = Math.max(0, w.flash - dt);
+  if (w.done) { w.leave -= dt; if (w.leave <= 0) endWalk(); return; }
+  let mx = keys.right - keys.left + touchAxis.x, my = keys.down - keys.up - touchAxis.y;
+  const m = Math.hypot(mx, my); if (m > 1) { mx /= m; my /= m; }
+  if (m > 0.05) w.face = Math.atan2(my, mx);
+  const dk = w.decks[w.d], nx0 = Math.max(dk.x0 + 0.6, Math.min(dk.x1 - 0.6, w.x + mx * WALK_SPEED * dt));
+  let nx = nx0, ny = Math.max(-w.hw, Math.min(w.hw, w.y + my * WALK_SPEED * dt));
+  for (const b of dk.walls) {
+    if ((w.x < b) !== (nx < b) && Math.abs(ny) > DOOR - 0.35) nx = w.x;   // walls: only the door in the middle lets you through
+    if (Math.abs(nx - b) < 0.35 && Math.abs(ny) > DOOR - 0.35) { if (Math.abs(w.y) <= DOOR - 0.35) ny = w.y; else nx = w.x; }
+  }
+  w.x = nx; w.y = ny;
+  // walking up to the right person checks you in on its own; Space works too
+  const c = GUARD_CHECKS[w.cp], p = w.people.find(q => q.chk === w.cp);
+  if (c && p && w.d === p.d && Math.hypot(p.x - w.x, p.y - w.y) < 2.2) walkAction('check');
+}
+function walkHere() { const L = walk.L; return walkDecks()[walk.d].rooms.find(r => walk.x >= r[1] * L && walk.x <= r[2] * L); }
+function walkAction(kind) {
+  const w = walk; if (!w || w.done) return;
+  const c = GUARD_CHECKS[w.cp], here = walkHere();
+  if (kind === 'check') {
+    const near = q => q.d === w.d && q.who && Math.hypot(q.x - w.x, q.y - w.y) < 3.2;
+    const p = w.people.find(q => q.chk === w.cp && near(q)) || w.people.find(near);
+    if (!p) { walkSay(here && (here[3] === 'stairs' || here[3] === 'lift') ? `You are at the ${here[3]}: press E to go up or Q to go down.` : `Nobody to check in with here. ${c.ask}`); return; }
+    if (p.chk !== w.cp) { walkSay(`${p.who}: “Not yet, Captain. ${c.ask}”`); return; }
+    w.cp++; w.flash = 0.6; sound.beep && sound.beep();
+    if (w.cp >= GUARD_CHECKS.length) { w.done = true; w.leave = 1.6; walkSay(c.ok, 3); return; }
+    walkSay(`${c.who}: ${c.ok} Next: ${GUARD_CHECKS[w.cp].ask}`, 5);
+    return;
+  }
+  // stairs and lifts link all three decks at the same place
+  if (!here || (here[3] !== 'stairs' && here[3] !== 'lift')) { walkSay('Find the stairs or the lift (the dark blocks) to change deck.'); return; }
+  const to = w.d + (kind === 'up' ? -1 : 1);
+  if (to < 0 || to > 2) { walkSay(kind === 'up' ? 'This is the top deck.' : 'This is the bottom deck.'); return; }
+  w.d = to; w.flash = 0.35; walkSay(`${walkDecks()[to].name}: ${walkDecks()[to].note.toLowerCase()}.`, 3);
+}
+function walkGoal() {   // where to head next: the checkpoint, or the nearest way up or down to its deck
+  const w = walk, c = GUARD_CHECKS[w.cp]; if (!c) return null;
+  const p = w.people.find(q => q.chk === w.cp);
+  if (c.d === w.d) return { x: p.x, y: p.y, text: c.ask };
+  const L = w.L, ways = walkDecks()[w.d].rooms.filter(r => r[3] === 'stairs' || r[3] === 'lift');
+  const best = ways.reduce((a, r) => Math.abs((r[1] + r[2]) / 2 * L - w.x) < Math.abs((a[1] + a[2]) / 2 * L - w.x) ? r : a);
+  const up = c.d < w.d;
+  return { x: (best[1] + best[2]) / 2 * L, y: 0, text: `${c.ask} It is on the ${walkDecks()[c.d].name.toLowerCase()}: go to the ${best[3]} and press ${up ? 'E (up)' : 'Q (down)'}.`, way: true };
+}
+function endWalk() {
+  const secs = walk.t; walk = null; flight.boardT = secs;
+  $('flight').classList.remove('walking'); syncWalkButtons(); shownTouch.clear();
+  note(`Boarded in ${mmss(secs)}. Air Force One is lined up on runway ${world.home.num} at ${world.home.name}. Throttle up (E) for take-off!`, 8);
+  $('tip').hidden = false; $('tip').textContent = flight.note.text;
+  wake();
+}
+function syncWalkButtons() { $('walkbtns').hidden = !walk; }
+const hm = s => `${Math.floor(s / 3600)} h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')} min`;
+// Guard mode, part 2: the long cruise. Skip jumps to just before the descent point; the time and fuel still count.
+function doSkip() {
+  if (!flight || !world || world.mode !== 'guard' || walk || flight.result) return;
+  const g = guide(flight, spec), d = cruiseSkip(flight, spec, g);
+  if (d) { trail = []; trailMax = 0; hist = []; G0 = guide(flight, spec); note(`Skipped ${Math.round(d / 1000).toLocaleString()} km (${hm(d / world.cruiseV)} of cruising). ${world.to.name} is ahead: the descent point comes up soon, then press 4 for Landing prep.`, 9); }
+  else note(flight.ground ? 'Take off first.' : g.phase === 'cruise' ? 'Too close to the descent point to skip now.' : `Skip works once you are cruising: climb to ${world.cruiseAlt.toLocaleString()} m first (flaps 2 turns the autopilot on).`, 5);
+}
+$('b-skip').addEventListener('click', doSkip);
+$('w-check').addEventListener('click', () => walkAction('check')); $('w-up').addEventListener('click', () => walkAction('up')); $('w-down').addEventListener('click', () => walkAction('down'));
+$('w-skip').addEventListener('click', () => { if (walk && !walk.done) { flight.boardSkipped = true; walk.done = true; walk.leave = 0; } });
+const RMCOL = { cockpit: '#9fb6cc', office: '#d9c27a', suite: '#e2b07c', meet: '#c9a3d6', staff: '#a9c8a0', crew: '#b9c1c9', galley: '#e9d8a8', medical: '#f0a8a8', seats: '#8fc3e0', lounge: '#a8dccb', tech: '#9aa4ad', cargo: '#c7b299', stairs: '#4b5966', lift: '#4b5966' };
+function drawWalk() {
+  const { ctx, w: cw, h: ch } = view, w = walk, L = w.L, hw = w.hw + 1, dk = w.decks[w.d], rooms = walkDecks()[w.d].rooms;
+  // keep the deck clear of the panels on top and (on phones) the thumb controls below
+  const narrow = cw < 600, top = narrow ? 120 : 76, bottom = TOUCH ? (ch > cw ? 330 : 118) : 12, avail = Math.max(120, ch - top - bottom);
+  const k = Math.max(6, Math.min(cw / 46, avail / (hw * 2 + 2))), cx = Math.max(dk.x0 - 4 + cw / k / 2, Math.min(dk.x1 + 4 - cw / k / 2, w.x));
+  const X = x => cw / 2 + (x - cx) * k, Y = y => top + avail / 2 + y * k;
+  ctx.fillStyle = '#1b2530'; ctx.fillRect(0, 0, cw, ch);
+  // hull
+  ctx.fillStyle = '#e9eef3'; ctx.beginPath(); ctx.moveTo(X(L * 0.025), Y(-hw)); ctx.lineTo(X(L * 0.93), Y(-hw)); ctx.lineTo(X(L), Y(-hw * 0.3)); ctx.lineTo(X(L), Y(hw * 0.3)); ctx.lineTo(X(L * 0.93), Y(hw));
+  ctx.lineTo(X(L * 0.025), Y(hw)); ctx.quadraticCurveTo(X(-2), Y(hw), X(-2), Y(0)); ctx.quadraticCurveTo(X(-2), Y(-hw), X(L * 0.025), Y(-hw)); ctx.fill();
+  ctx.fillStyle = '#7fb4dc';   // windows
+  for (let x = L * 0.04; x < L * 0.9; x += 3.2) { ctx.fillRect(X(x), Y(-hw) - 1, 1.2 * k, 3); ctx.fillRect(X(x), Y(hw) - 2, 1.2 * k, 3); }
+  // rooms
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const r of rooms) {
+    const a = r[1] * L, b = r[2] * L; if (X(b) < 0 || X(a) > cw) continue;
+    ctx.fillStyle = RMCOL[r[3]]; ctx.fillRect(X(a), Y(-hw + 0.5), (b - a) * k, (hw * 2 - 1) * k);
+    if (r[3] === 'stairs') { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; for (let y = -hw + 1; y < hw - 0.5; y += 0.8) { ctx.beginPath(); ctx.moveTo(X(a), Y(y)); ctx.lineTo(X(b), Y(y)); ctx.stroke(); } }
+    if (r[4]) {   // seats: rows across the cabin, with the aisle down the middle
+      ctx.fillStyle = 'rgba(30,60,90,.35)'; const n = r[4].abreast, half = Math.ceil(n / 2);
+      for (let x = a + 1; x < b - 0.8; x += r[4].pitch) for (let s = 0; s < n; s++) { const side = s < half ? -1 : 1, idx = s < half ? s : s - half, y = side * (DOOR + 0.4 + idx * (hw - DOOR - 1.2) / Math.max(1, half - 0.5)); ctx.fillRect(X(x), Y(y) - 0.25 * k, 0.55 * k, 0.5 * k); }
+    }
+    ctx.fillStyle = r[3] === 'stairs' || r[3] === 'lift' ? '#fff' : 'rgba(16,32,44,.8)'; ctx.font = `600 ${Math.max(10, Math.min(15, k * 0.9))}px ${getComputedStyle(document.body).fontFamily}`;
+    const label = r[3] === 'stairs' ? 'STAIRS' : r[3] === 'lift' ? 'LIFT' : r[0];
+    if ((b - a) * k > ctx.measureText(label).width * 0.6) { ctx.save(); ctx.translate(X((a + b) / 2), Y(hw - 2.2)); if ((b - a) * k < ctx.measureText(label).width + 6) { ctx.rotate(-Math.PI / 2); } ctx.fillText(label, 0, 0); ctx.restore(); }
+  }
+  // walls with a door in the middle
+  ctx.strokeStyle = '#33414e'; ctx.lineWidth = Math.max(2, k * 0.25);
+  for (const b of dk.walls) { ctx.beginPath(); ctx.moveTo(X(b), Y(-hw + 0.5)); ctx.lineTo(X(b), Y(-DOOR)); ctx.moveTo(X(b), Y(DOOR)); ctx.lineTo(X(b), Y(hw - 0.5)); ctx.stroke(); }
+  ctx.strokeRect(X(dk.x0), Y(-hw + 0.5), (dk.x1 - dk.x0) * k, (hw * 2 - 1) * k);
+  // where to go next
+  const g = walkGoal(), pulse = 0.5 + 0.5 * Math.sin(w.t * 5);
+  if (g) { ctx.strokeStyle = `rgba(60,255,138,${0.5 + 0.5 * pulse})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(g.x), Y(g.y), (g.way ? 3 : 2.2) * k, 0, Math.PI * 2); ctx.stroke();
+    if (X(g.x) < 20 || X(g.x) > cw - 20) { const right = X(g.x) > cw - 20, ax = right ? cw - 18 : 18, ay = Y(0); ctx.fillStyle = '#3cff8a'; ctx.beginPath(); ctx.moveTo(ax + (right ? 12 : -12), ay); ctx.lineTo(ax, ay - 12); ctx.lineTo(ax, ay + 12); ctx.fill(); } }
+  // people
+  for (const p of w.people) {
+    if (p.d !== w.d || X(p.x) < -20 || X(p.x) > cw + 20) continue;
+    const done = p.chk !== undefined && p.chk < w.cp;
+    ctx.fillStyle = p.boss ? '#c9a646' : p.who ? (done ? '#4b7a5a' : '#1f3a66') : '#6b7884';
+    ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 0.55 * k, 0, Math.PI * 2); ctx.fill();
+    if (p.who) { ctx.fillStyle = '#10202c'; ctx.font = `600 ${Math.max(10, Math.min(13, k * 0.75))}px ${getComputedStyle(document.body).fontFamily}`; ctx.fillText(p.who + (done ? ' ✓' : ''), X(p.x), Y(p.y) - 1.3 * k); }
+  }
+  // you
+  ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#d23a2a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(w.x), Y(w.y), 0.6 * k, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#d23a2a'; ctx.beginPath(); ctx.arc(X(w.x + Math.cos(w.face) * 0.45), Y(w.y + Math.sin(w.face) * 0.45), 0.2 * k, 0, Math.PI * 2); ctx.fill();
+  if (w.flash) { ctx.fillStyle = `rgba(255,255,255,${w.flash * 0.5})`; ctx.fillRect(0, 0, cw, ch); }
+  // panel: deck, checkpoint, time
+  const font = getComputedStyle(document.body).fontFamily;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = 'rgba(8,14,20,.82)'; const pw = narrow ? cw - 20 : Math.min(cw - 240, 420); ctx.fillRect(10, 10, pw, 54);
+  ctx.fillStyle = '#cfdde8'; ctx.font = `600 11px ${font}`; ctx.fillText(`BOARDING · ${walkDecks()[w.d].name.toUpperCase()} · ${mmss(w.t)}`, 18, 17);
+  ctx.fillStyle = '#3cff8a'; ctx.font = `600 15px ${font}`; ctx.fillText(w.cp < GUARD_CHECKS.length ? `${narrow ? '' : 'Checkpoint '}${w.cp + 1} of ${GUARD_CHECKS.length}: ${GUARD_CHECKS[w.cp].who}` : 'All checkpoints passed', 18, 36);
+  // deck map: all three decks, you and the next checkpoint
+  const mw = narrow ? cw - 32 : 200, mx0 = cw - mw - 16, my0 = narrow ? 70 : 10;
+  ctx.fillStyle = 'rgba(8,14,20,.82)'; ctx.fillRect(mx0 - 6, my0, mw + 12, 50);
+  walkDecks().forEach((d2, i) => { const y = my0 + 6 + i * 14; ctx.fillStyle = i === w.d ? '#5d7590' : '#34424f'; ctx.fillRect(mx0, y, mw, 10);
+    for (const r of d2.rooms) if (r[3] === 'stairs' || r[3] === 'lift') { ctx.fillStyle = '#9aa4ad'; ctx.fillRect(mx0 + r[1] * mw, y, Math.max(2, (r[2] - r[1]) * mw), 10); } });
+  const c = GUARD_CHECKS[w.cp]; if (c) { const p = w.people.find(q => q.chk === w.cp); ctx.fillStyle = '#3cff8a'; ctx.fillRect(mx0 + p.x / L * mw - 3, my0 + 8 + c.d * 14, 6, 6); }
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(mx0 + w.x / L * mw, my0 + 11 + w.d * 14, 3.5, 0, Math.PI * 2); ctx.fill();
+  // instruction line
+  const tip = $('tip'), say = w.t < w.msgT ? w.msg : g ? g.text : '';
+  const txt = TOUCH ? say.replace(/press E \(up\)/g, 'tap Stairs up').replace(/press Q \(down\)/g, 'tap Stairs down').replace(/press E to go up or Q to go down/g, 'tap Stairs up or Stairs down') : say;
+  tip.hidden = !txt; if (tip.textContent !== txt) tip.textContent = txt;
+}
 
 // ---------- first-flight checklist: one control at a time, ticked off as you do it ----------
 const COACH = [
@@ -1559,7 +2071,7 @@ const COACH = [
 let coach = null;
 function drawCoach() {
   const now = coach.done.indexOf(false), ol = $('coach'); ol.textContent = '';
-  COACH.forEach((c, i) => { const li = document.createElement('li'), sm = document.createElement('small'); sm.textContent = `First flight · step ${i + 1} of ${COACH.length}`; li.append(sm, c.text); li.className = coach.done[i] ? 'done' : i === now ? 'now' : ''; ol.append(li); });
+  COACH.forEach((c, i) => { const li = document.createElement('li'), sm = document.createElement('small'); sm.textContent = `First flight · step ${i + 1} of ${COACH.length}`; li.append(sm, TOUCH ? touchText(c.text) : c.text); li.className = coach.done[i] ? 'done' : i === now ? 'now' : ''; ol.append(li); });
   if (now < 0) ol.hidden = true;
 }
 function updateCoach() {
@@ -1570,12 +2082,12 @@ function updateCoach() {
 
 // one physics step: controls, autopilots, the plane, and everything else that moves
 function tick(dt) {
-    let pitch = keys.up - keys.down, roll = keys.right - keys.left;
+    let pitch = Math.max(-1, Math.min(1, keys.up - keys.down + touchAxis.y)), roll = Math.max(-1, Math.min(1, keys.right - keys.left + touchAxis.x));
     G0 = guide(flight, spec);
     // automatic cruise on flaps 2
     if (!flight.pilotFlap && !flight.autoDone && canAuto() && flight.h > 100) { flight.autoDone = true; setFlaps(2, false); }
     if ((flight.ap || flight.at) && !canAuto()) { flight.ap = flight.at = false; note(G0.phase === 'approach' ? 'Descent point: autopilot off. You have control for the landing.' : 'Autopilot off: you have control.', 6); }
-    if (flight.ap && (pitch || roll)) { flight.ap = false; note('You have the steering. Press 2 to turn the autopilot back on.'); }
+    if (flight.ap && (Math.abs(pitch) > 0.05 || Math.abs(roll) > 0.05)) { flight.ap = false; note('You have the steering. Press 2 to turn the autopilot back on.'); }
     if (fight && fight.B && fight.bombAP) {
       if (pitch || roll) { fight.bombAP = false; note('Bomb run autopilot off: you have control.'); syncToggles(); }
       else { const r = bombAPInput(); pitch = r[0]; roll = r[1]; }
@@ -1586,7 +2098,7 @@ function tick(dt) {
       roll = Math.max(-1, Math.min(1, (bankCmd - flight.phi) / 8));
     }
     if (flight.at) {
-      const v0 = Math.hypot(flight.vx, flight.vy), vT = Math.max(spec.vStall * 1.35, Math.min(spec.vMax * 0.6, spec.vStall * 1.6));
+      const v0 = Math.hypot(flight.vx, flight.vy), vT = world.cruiseV && flight.h > 1500 ? world.cruiseV : Math.max(spec.vStall * 1.35, Math.min(spec.vMax * 0.6, spec.vStall * 1.6));
       const th = Math.max(0, Math.min(1, flight.throttle + (vT - v0) * 0.02 * dt * 4));
       flight.throttle = th; $('thr').value = Math.round(th * 100); $('o-thr').textContent = Math.round(th * 100) + '%';
     }
@@ -1681,6 +2193,10 @@ function frameUI(dt) {
       else if (turnTxt) msg = turnTxt + ' to follow the green route.';
       else if (g.phase === 'cruise' && g.dtg - g.todDist < Math.max(1500, v * 25)) msg = 'Descent point coming up on the map. Get ready to throttle back.';
       else if (flight.flapSet === 1 && flight.h > 100) msg = 'Climbing nicely. Set flaps to 2 Flat (press 2) to fly faster.';
+      if (world.mode === 'guard' && !(flight.note && flight.t < flight.note.until) && !flight.terrWarn) {
+        if (g.phase === 'cruise' && g.dtg - g.Ff - g.todDist > 70000 && Math.abs(flight.h - world.cruiseAlt) < 300) msg = `Cruising at ${world.cruiseAlt.toLocaleString()} m over ${world.route.sea}. Press K (Skip to descent) to jump ahead: the time and fuel still count.`;
+        else if (g.phase === 'climb' && flight.h > 300 && (flight.ap || flight.flapSet === 2)) msg = `Climbing to ${world.cruiseAlt.toLocaleString()} m cruise height, the autopilot is flying.`;
+      }
       if (world.mode === 'fight' || world.mode === 'stunt' || world.situation === 'ocean') {
         const nt = flight.note && flight.t < flight.note.until ? flight.note.text : '';
         if (world.mode === 'fight' && fight.B) msg = nt || (fight.warn ? 'Missile coming! Turn hard and press G for flares.' : fight.bombTip);
@@ -1696,6 +2212,7 @@ function frameUI(dt) {
       if (v >= soundSpeed(flight.h) && !flight.boom) { flight.boom = true; note('BOOM! Sonic boom: you are flying faster than the speed of sound (Mach 1).', 6); }
       else if (v < soundSpeed(flight.h) * 0.95) flight.boom = false;
     }
+    if (world.mode === 'guard') { const left = Math.max(0, G0.dtg); setText('h-stunt', `${Math.round(left / 1000).toLocaleString()} km · ${hm(left / world.cruiseV)}`); }
     if (world.sitType) {
       const f = flight, sx = world.sitType;
       if (sx === 'wind') { const W = world.wind, rel = wrap(Math.atan2(-W[0], -W[1]) - f.psi) / DEG; $('h-stunt').textContent = `${Math.round(Math.hypot(...W) * 3.6)} km/h ${rel < 0 ? '◀ from left' : 'from right ▶'}`; }
@@ -1782,8 +2299,22 @@ const LIVERY = {
   zero: { body: '#44573a', belly: '#c4c2b0', stripe: '#44573a', tail: '#44573a', tailStripe: '#c9a83a', wing: '#44573a', spinner: '#6e4a2e' },
   p51: { body: '#c6cbd1', belly: '#bfc4ca', stripe: '#1e1f22', tail: '#c6cbd1', tailStripe: '#d9b622', wing: '#c0c5cb', spinner: '#d9b622' },
   fw190: { body: '#6e7666', belly: '#a9b7c2', stripe: '#d4c23a', tail: '#6e7666', tailStripe: '#d4c23a', wing: '#6e7666', spinner: '#2f3230' },
+  hurricane: { body: '#5f6a45', belly: '#a8b2b5', stripe: '#cfc9a6', tail: '#5f6a45', tailStripe: '#cfc9a6', wing: '#5f6a45', spinner: '#2a2c2e' },
+  bf109: { body: '#76806a', belly: '#9fb4c6', stripe: '#e6c62e', tail: '#76806a', tailStripe: '#e6c62e', wing: '#5e6855', spinner: '#e6c62e' },
+  he111: { body: '#5e6855', belly: '#9fb4c6', stripe: '#e6c62e', tail: '#5e6855', tailStripe: '#e6c62e', wing: '#5e6855', engine: '#4b5244', spinner: '#2f3230' },
+  ju87: { body: '#6a7360', belly: '#9fb4c6', stripe: '#e6c62e', tail: '#6a7360', tailStripe: '#e6c62e', wing: '#6a7360', spinner: '#2f3230' },
+  la5: { body: '#7c848b', belly: '#a7b2bb', stripe: '#7c848b', tail: '#7c848b', tailStripe: '#c0272d', wing: '#6c7a5c', spinner: '#f2f2f2' },
+  f6f: { body: '#2a3d66', belly: '#e8ebee', stripe: '#2a3d66', tail: '#2a3d66', tailStripe: '#f2f2f2', wing: '#2a3d66', spinner: '#2a3d66' },
+  p47: { body: '#c6cbd1', belly: '#bfc4ca', stripe: '#1e1f22', tail: '#c6cbd1', tailStripe: '#2a6fd0', wing: '#c0c5cb', spinner: '#e8c33a' },
+  f86: { body: '#cfd4d9', belly: '#c4c9ce', stripe: '#1e3c78', tail: '#cfd4d9', tailStripe: '#e8c33a', wing: '#cfd4d9', engine: '#4a4f55' },
+  mig15: { body: '#b8bdc2', belly: '#aeb3b8', stripe: '#b8bdc2', tail: '#b8bdc2', tailStripe: '#c0272d', wing: '#b8bdc2', engine: '#4a4f55' },
+  f15: { body: '#8a949e', belly: '#7e8892', stripe: '#808a94', tail: '#8a949e', wing: '#8a949e', engine: '#4a5058' },
+  mig21: { body: '#a9b0b6', belly: '#9ea5ab', stripe: '#a9b0b6', tail: '#a9b0b6', tailStripe: '#c0272d', wing: '#a9b0b6', engine: '#4a5058' },
+  mig29: { body: '#7f8c8a', belly: '#c8cfd4', stripe: '#6f7c7a', tail: '#7f8c8a', tailStripe: '#c0272d', wing: '#7f8c8a', engine: '#4a5058' },
   yak3: { body: '#7c848b', belly: '#a7b2bb', stripe: '#7c848b', tail: '#7c848b', tailStripe: '#c0272d', wing: '#7c848b', spinner: '#c0272d' },
   b121: { body: '#3a3f47', belly: '#30343a', stripe: '#b3262d', tail: '#3a3f47', tailStripe: '#b3262d', wing: '#40454d', engine: '#2e3238' },
+  b121b: { body: '#f4f6f9', belly: '#2c5d8f', stripe: '#c9a646', tail: '#2c5d8f', tailStripe: '#c9a646', wing: '#dfe4ea', engine: '#2c5d8f' },
+  b121c: { body: '#f4f6f9', belly: '#d7dde4', stripe: '#1f8f84', tail: '#1f8f84', tailStripe: '#f2c230', wing: '#dfe4ea', engine: '#1f8f84' },
   an225: { body: '#f2f3f5', belly: '#c9ced6', stripe: '#1f5aa8', tail: '#f2f3f5', tailStripe: '#f2c230', wing: '#e6e9ed', engine: '#d9dde2' },
   redhawk: { body: '#6d7076', belly: '#5d6066', stripe: '#b3262d', tail: '#b3262d', tailStripe: '#f2f2f2', wing: '#6d7076', engine: '#45484d' }
 };
@@ -1886,8 +2417,11 @@ function buildModel(p, gearDown, lvIn) {
     for (let i = 0; i < ts.length - 1; i++) for (let k = 0; k < n - 1; k++) F([cring[i][k], cring[i][k + 1], cring[i + 1][k + 1], cring[i + 1][k]], glass, { glass: true });
   } else {
     for (const s of [-1, 1]) {
-      const z = H * 0.14, z2 = z + H * 0.07, y = s * (W / 2 * 0.99 + 0.02);
-      F([[L / 2 - 0.13 * L, y, z], [L / 2 - 0.8 * L, y, z], [L / 2 - 0.8 * L, y, z2], [L / 2 - 0.13 * L, y, z2]], glass, { glass: true });
+      const y = s * (W / 2 * 0.99 + 0.02);
+      for (let d = 0; d < (p.decks || 1); d++) {   // one window band per deck
+        const z = p.decks ? -H * 0.26 + d * H * 0.22 : H * 0.14, z2 = z + H * (p.decks ? 0.05 : 0.07);
+        F([[L / 2 - 0.13 * L, y, z], [L / 2 - 0.8 * L, y, z], [L / 2 - 0.8 * L, y, z2], [L / 2 - 0.13 * L, y, z2]], glass, { glass: true });
+      }
       if (p.hump) F([[L / 2 - 0.07 * L, s * (W * 0.3), H * 0.62], [L / 2 - 0.27 * L, s * (W * 0.3), H * 0.62], [L / 2 - 0.27 * L, s * (W * 0.3), H * 0.68], [L / 2 - 0.07 * L, s * (W * 0.3), H * 0.68]], glass, { glass: true });
       F([[L / 2 - 0.03 * L, s * W * 0.05, topAt(0.04) * 0.75], [L / 2 - 0.065 * L, s * W * 0.3, topAt(0.08) * 0.85], [L / 2 - 0.065 * L, s * W * 0.3, topAt(0.08) * 0.62], [L / 2 - 0.03 * L, s * W * 0.05, topAt(0.04) * 0.45]], glass, { glass: true });
     }
@@ -2463,7 +2997,7 @@ function drawMini() {
   }
   // other aircraft, missiles
   for (const o of (world.mode === 'fight' && fight ? fight.agents.filter(a => !a.player) : others)) { if (!o.alive) continue; const q = M(o.e, o.n); if (q[0] < 0 || q[0] > w || q[1] < 0 || q[1] > h) continue; ctx.fillStyle = o.team === 'red' ? '#ff5a4a' : '#5ab0ff'; ctx.beginPath(); ctx.arc(q[0], q[1], 3.5, 0, Math.PI * 2); ctx.fill(); }
-  if (world.mode === 'fight' && fight && fight.tgts) { for (const x of fight.tgts) { const q = M(x.e, x.n); ctx.fillStyle = x.alive ? '#ffb02e' : '#5a5a5a'; ctx.fillRect(q[0] - 3.5, q[1] - 3.5, 7, 7); }
+  if (world.mode === 'fight' && fight && fight.tgts) { for (const x of fight.tgts) { const q = M(x.e, x.n); ctx.fillStyle = x.ours ? '#3cff8a' : x.alive ? '#ffb02e' : '#5a5a5a'; ctx.fillRect(q[0] - 3.5, q[1] - 3.5, 7, 7); }
     if (fight.ip) { const q = M(fight.ip[0], fight.ip[1]); ctx.strokeStyle = fight.onTarget ? '#ff3b30' : '#ffe14a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q[0], q[1], Math.max(4, fight.B.blast * ppm), 0, Math.PI * 2); ctx.stroke(); } }
   if (world.mode === 'fight' && fight) for (const m of fight.missiles) { if (!m.alive) continue; const q = M(m.p[0], m.p[1]); ctx.fillStyle = m.team === 'red' ? '#ffd0c8' : '#ffffff'; ctx.fillRect(q[0] - 1.5, q[1] - 1.5, 3, 3); }
   if (world.mode === 'stunt' && team) { const p = slotPoint('left'), q = M(p[0], p[1]); ctx.strokeStyle = '#3cff8a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q[0], q[1], 6, 0, Math.PI * 2); ctx.stroke(); }
@@ -2602,10 +3136,19 @@ const SITS = {
   storm: { title: 'Storm landing', map: 'Storm Island', plane: 'b747', icon: '', text: 'Heavy turbulence, rain and fog. Bring a jumbo jet down onto a small island runway.' },
   carrier: { title: 'Aircraft carrier landing', map: 'Carrier group', plane: 'f35c', icon: '', text: 'Land on a 250 m deck at sea. No flare: fly the green line into the deck and the wire stops you.' }
 };
-let sitId = 'random', rolled = null, fightJet = 'f35', fightSize = 1;
+let guardRoute = 'atlantic', sitId = 'random', rolled = null, fightJet = 'f35', fightSize = 1;
 function buildModePanel() {
-  const p = $('modepanel'); p.hidden = !['situation', 'fight', 'stunt'].includes(gameMode);
+  const p = $('modepanel'); p.hidden = !['situation', 'fight', 'stunt', 'guard', 'battle'].includes(gameMode);
   if (p.hidden) return;
+  if (gameMode === 'battle') { p.innerHTML = battlePanelHTML(); bindBattlePanel(p); return; }
+  if (gameMode === 'guard') {
+    const km = id => { const r = GUARD_ROUTES[id]; return Math.round(greatCircle(AIRPORTS[r.from], AIRPORTS[r.to]).d / 1000); };
+    p.innerHTML = '<span class="label">Pick a route</span><div class="sitlist">' + Object.entries(GUARD_ROUTES).map(([k, r]) => { const A = AIRPORTS[r.from], B = AIRPORTS[r.to];
+      return `<button class="pc sit" data-g="${k}" aria-pressed="${k === guardRoute}"><b>${r.title}</b><span class="n">${km(k).toLocaleString()} km<br>over ${r.sea.replace('the ', '')}</span><span class="r">${A.name} (${A.city}) to ${B.name} (${B.city})</span></button>`; }).join('') +
+      '</div><p class="hint">Real airports and real distances. Air Force One burns fuel slowly enough to cross an ocean, and once you are cruising, K skips ahead to the descent. The runways are lengthened if the B-121B needs more room.</p>';
+    p.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { guardRoute = b.dataset.g; buildModePanel(); }));
+    return;
+  }
   if (gameMode === 'situation') {
     const done = stats.sits || {};
     p.innerHTML = '<div class="sitlist">' + Object.entries(SITS).map(([k, s]) => `${k === 'normal' ? '<span class="label">Or pick a classic</span>' : ''}<button class="pc sit" data-s="${k}" aria-pressed="${k === sitId}"><b>${s.title}${done[k] ? ' <i class="tag ok">Done</i>' : ''}</b><span class="n">${s.plane ? REAL[s.plane].name.replace('Lockheed Martin ', '') : '5 planes'}<br>${s.map}</span><span class="r">${s.text}</span></button>`).join('') + '</div>';
@@ -2635,7 +3178,7 @@ const TYPEINFO = {
 };
 let others = [];
 function drawExtras(ctx, cam, F, w, h) {
-  if (world.mode === 'fight' && fight && fight.B) drawTargets(ctx, cam, F);
+  if (world.mode === 'fight' && fight && fight.tgts) drawTargets(ctx, cam, F);
   drawOthers(ctx, cam, F);
   if (world.mode === 'fight' && fight) { drawFightFX(ctx, cam, F); if (fight.B) drawBombFX(ctx, cam, F); drawMarkers(ctx, cam, w, h); if (fight.B) { drawTargetMarkers(ctx, cam); drawBombSight(ctx, w, h); } }
   if (world.mode === 'stunt' && team) { drawSlotRing(ctx, cam, F); drawMarkers(ctx, cam, w, h); }
@@ -2658,7 +3201,7 @@ function drawOthers(ctx, cam, F) {
 // ---------- FIGHT: battle types (modern jets, bomber run, WW2 dogfight) ----------
 const WW2 = { uk: { name: 'Britain', plane: 'spit', side: 'allies' }, usa: { name: 'USA', plane: 'p51', side: 'allies' }, ussr: { name: 'Soviet Union', plane: 'yak3', side: 'allies' },
   ger: { name: 'Germany', plane: 'fw190', side: 'axis' }, jpn: { name: 'Japan', plane: 'zero', side: 'axis' } };
-const SHORT = { fw190: 'Fw 190', zero: 'Zero', spit: 'Spitfire', p51: 'Mustang', yak3: 'Yak-3', redhawk: 'Red Hawk', f35: 'F-35', f22: 'F-22' };
+const SHORT = { hurricane: 'Hurricane', bf109: 'Bf 109', he111: 'He 111', ju87: 'Stuka', la5: 'La-5', f6f: 'Hellcat', p47: 'Thunderbolt', f86: 'Sabre', mig15: 'MiG-15', f15: 'F-15', mig21: 'MiG-21', mig29: 'MiG-29', b17: 'B-17', sbd: 'Dauntless', fw190: 'Fw 190', zero: 'Zero', spit: 'Spitfire', p51: 'Mustang', yak3: 'Yak-3', redhawk: 'Red Hawk', f35: 'F-35', f22: 'F-22' };
 const BOMBERS = {
   b17: { label: 'B-17 Flying Fortress', bombs: 16, stick: 2, blast: 40, hp: 400, era: 'ww2', red: ['fw190'], alt: 2500, guns: { range: 900, dps: 22, n: 3 },
     text: '1943 over Europe. Thirteen machine guns: your gunners fire by themselves. Mustangs escort you; Fw 190s defend the factory.' },
@@ -2677,7 +3220,8 @@ const BOMBERS = {
 };
 const ERA_NOTE = 'Bombs fall forward as well as down: watch the bomb sight (bottom left) and drop when the target is inside the circle.';
 let fightKind = 'jets', bomberKey = 'b17', ww2Key = 'uk';
-function fightPlane() { return fightKind === 'bomber' ? bomberKey : fightKind === 'ww2' ? WW2[ww2Key].plane : fightJet; }
+function fight_isBomb() { return world && world.battle ? BATTLES[world.battle].type === 'bomb' : fightKind === 'bomber'; }
+function fightPlane() { return gameMode === 'battle' ? battlePlane() : fightKind === 'bomber' ? bomberKey : fightKind === 'ww2' ? WW2[ww2Key].plane : fightJet; }
 function fightPanelHTML() {
   const opt = (name, id, val, cur, label) => `<input type="radio" name="${name}" id="${id}" value="${val}" ${cur === val ? 'checked' : ''}><label class="o" for="${id}">${label}</label>`;
   let h = `<div class="seg"><span class="label">Battle type</span><div class="opts">${opt('fk', 'fk-jets', 'jets', fightKind, 'Modern jets')}${opt('fk', 'fk-bomber', 'bomber', fightKind, 'Bomber run')}${opt('fk', 'fk-ww2', 'ww2', fightKind, 'WW2 dogfight')}</div></div>`;
@@ -2692,8 +3236,8 @@ function bindFightPanel(p) {
   const on = (n, fn) => p.querySelectorAll(`input[name=${n}]`).forEach(i => i.addEventListener('change', () => { fn(i.value); usePlane(fightPlane()); buildModePanel(); }));
   on('fk', v => fightKind = v); on('fj', v => fightJet = v); on('bk', v => bomberKey = v); on('wc', v => ww2Key = v); on('fs', v => fightSize = +v);
 }
-function bomberWorld() {
-  const B = BOMBERS[bomberKey];
+function bomberWorld(B0) {
+  const B = B0 || BOMBERS[bomberKey];
   if (B.ships) { const home = { e: 0, n: 0, hdg: 0, len: spec.homeLen, wid: 30, kind: 'home', name: 'Island airfield', elev: 0, num: '36' }; return seaWorld([home], home, (e, n) => Math.hypot(e, n - home.len / 2) < home.len / 2 + 700); }
   return makeWorld(spec, worldSeed, 'free');
 }
@@ -2719,12 +3263,12 @@ function makeTargets(B) {
   const T = [];
   if (B.ships) {
     const c = [2500, 14000], hdg = Math.PI / 2;
-    T.push({ type: 'carrier', name: 'Enemy carrier', e: c[0], n: c[1], psi: hdg, len: 240, wid: 30, hp: 200, sp: 7 });
-    T.push({ type: 'destroyer', name: 'Enemy destroyer', e: c[0] + 700, n: c[1] + 500, psi: hdg, len: 110, wid: 12, hp: 100, sp: 7 });
+    T.push({ type: 'carrier', name: (B.shipNames || [])[0] || 'Enemy carrier', e: c[0], n: c[1], psi: hdg, len: 240, wid: 30, hp: 200, sp: 7 });
+    T.push({ type: 'destroyer', name: (B.shipNames || [])[1] || 'Enemy destroyer', e: c[0] + 700, n: c[1] + 500, psi: hdg, len: 110, wid: 12, hp: 100, sp: 7 });
   } else {
     let zc = [0, B.era === 'jet' ? 24000 : 16000];
     for (let k = 0; k < 12 && world.runways.some(r => Math.hypot(r.e - zc[0], r.n - zc[1]) < 2500); k++) zc = [zc[0] + 3000, zc[1]];
-    const types = [['factory', 'Factory', 200, 36], ['hangar', 'Hangar', 100, 26], ['tank', 'Fuel tank', 100, 14], ['tank', 'Fuel tank', 100, 14], ['radar', 'Radar', 100, 12]];
+    const types = [['factory', B.factory || 'Factory', 200, 36], ['hangar', 'Hangar', 100, 26], ['tank', 'Fuel tank', 100, 14], ['tank', 'Fuel tank', 100, 14], ['radar', 'Radar', 100, 12]];
     for (const [type, name, hp, r] of types) {
       let p, k = 0; do { const a = Math.random() * 2 * Math.PI, d = 120 + Math.random() * 520; p = [zc[0] + Math.sin(a) * d, zc[1] + Math.cos(a) * d]; } while (k++ < 50 && T.some(t => Math.hypot(t.e - p[0], t.n - p[1]) < 190));
       T.push({ type, name, e: p[0], n: p[1], psi: Math.random() * Math.PI, r, hp, sp: 0 });
@@ -2740,16 +3284,116 @@ function hitsTarget(t, p, blast) {
 }
 function impactOf(p, v) { const g0 = groundAt(world, p[0], p[1]), hh = Math.max(0, p[2] - g0), tt = (v[2] + Math.sqrt(v[2] * v[2] + 2 * G * hh)) / G; return [p[0] + v[0] * tt, p[1] + v[1] * tt, tt]; }
 
+
+// ---------- BATTLE: ten of the biggest air battles in history, shrunk to a size a game can fly ----------
+// type: intercept (stop a bomber raid before it reaches its goal), escort (bring your own bombers through),
+//       bomb (fly the bomber yourself, on the bomber-run engine), dogfight (fighters only).
+// reds / raiders / escorts / wing are counts at normal size; Huge size doubles them.
+const BATTLES = {
+  britain: { title: 'Battle of Britain', when: 'July to October 1940', where: 'Southern England', side: 'Britain', type: 'intercept', you: ['spit', 'hurricane'],
+    blue: ['hurricane', 'spit'], wing: 4, raid: 'he111', raiders: 6, raidV: 85, raidGuns: { range: 600, dps: 5, n: 2 }, escort: ['bf109'], escorts: 4, goal: 'London', maxReach: 3, alt: 3500,
+    story: 'The first major battle fought entirely in the air. RAF Hurricanes and Spitfires stopped the Luftwaffe from winning control of the sky over Britain.',
+    job: 'Stop the He 111 bombers before they reach London. Bf 109s are escorting them.' },
+  midway: { title: 'Battle of Midway', when: '4 June 1942', where: 'Pacific Ocean, near Midway Island', side: 'USA', type: 'bomb', you: ['sbd'], bomber: 'sbd',
+    bomb: { red: ['zero'], escortKey: 'sbd', escortBomber: true, ships: true, shipNames: ['Carrier Akagi', 'Destroyer'] }, reds: 6, wing: 2,
+    story: 'US Navy SBD Dauntless dive bombers wrecked four Japanese aircraft carriers in a single day, a turning point of the Pacific war.',
+    job: 'Find the Japanese fleet, dive steeply with the airbrake out and bomb the carrier while Zeros attack you.' },
+  kursk: { title: 'Battle of Kursk', when: 'July 1943', where: 'Kursk, Soviet Union', side: 'Soviet Union', type: 'intercept', you: ['la5', 'yak3'],
+    blue: ['la5', 'yak3'], wing: 4, raid: 'ju87', raiders: 8, raidV: 80, raidGuns: { range: 500, dps: 4, n: 1 }, escort: ['fw190'], escorts: 4, goal: 'the Soviet tank lines', maxReach: 4, alt: 2000,
+    story: 'Thousands of Soviet and German aircraft fought above the largest tank battle in history.',
+    job: 'Stuka dive bombers are heading for the Soviet tanks. Shoot them down before they get there.' },
+  schweinfurt: { title: 'Schweinfurt–Regensburg raid', when: '17 August 1943', where: 'Southern Germany', side: 'USA', type: 'bomb', you: ['b17'], bomber: 'b17',
+    bomb: { red: ['fw190', 'bf109'], escortKey: 'b17', escortBomber: true, factory: 'Ball-bearing factory' }, reds: 8, wing: 3,
+    story: '376 B-17s flew deep into Germany, beyond the range of their fighter escorts, to bomb ball-bearing and aircraft factories. 60 of them were shot down.',
+    job: 'Bomb the ball-bearing factory. No fighters protect you: your gunners and the B-17s around you are all you have.' },
+  bigweek: { title: 'Big Week', when: '20 to 25 February 1944', where: 'Germany', side: 'USA', type: 'escort', you: ['p51', 'p47'],
+    blue: ['p51', 'p47'], wing: 3, raid: 'b17', raiders: 6, raidV: 80, raidGuns: { range: 800, dps: 7, n: 3 }, red: ['fw190', 'bf109'], reds: 8, goal: 'the aircraft factory', minSafe: 3, alt: 3500,
+    story: 'A week of huge American and British raids on German aircraft factories. Long-range P-51 Mustangs could now escort the bombers all the way.',
+    job: 'Escort six B-17s to the aircraft factory. At least three must get there.' },
+  philsea: { title: 'Battle of the Philippine Sea', when: '19 to 20 June 1944', where: 'Philippine Sea, Pacific Ocean', side: 'USA', type: 'intercept', you: ['f6f'], sea: true,
+    blue: ['f6f'], wing: 3, raid: 'zero', raiders: 8, raidV: 100, escort: ['zero'], escorts: 4, goal: 'the US fleet', maxReach: 4, alt: 4000,
+    story: 'The largest carrier battle in history. US Navy Hellcats shot down so many Japanese aircraft that pilots called it the "Great Marianas Turkey Shoot".',
+    job: 'A big raid of Zeros carrying bombs is heading for the US carriers. Break it up before it reaches the fleet.' },
+  bodenplatte: { title: 'Operation Bodenplatte', when: '1 January 1945', where: 'Belgium and the Netherlands', side: 'Britain', type: 'intercept', you: ['spit', 'p47'],
+    blue: ['spit', 'p47'], wing: 3, raid: 'fw190', raiders: 8, raidV: 115, escort: ['bf109'], escorts: 4, goal: 'the Allied airfield', maxReach: 4, alt: 700,
+    story: 'About 900 German fighters made a surprise low-level attack on Allied airfields on New Year’s Day. Germany lost around 300 aircraft and many pilots it could not replace.',
+    job: 'Fw 190s are racing in low to strafe your airfield. Catch them before they get there.' },
+  migalley: { title: 'MiG Alley', when: '1951 to 1953', where: 'North-west Korea, near the Yalu River', side: 'USA', type: 'dogfight', you: ['f86'], jets: true,
+    blue: ['f86'], wing: 3, red: ['mig15'], reds: 6, alt: 7000,
+    story: 'The first big jet-against-jet battles. American F-86 Sabres fought Soviet-built MiG-15s, with guns only: no guided missiles yet.',
+    job: 'Clear the sky of MiG-15s. Guns only: get within 800 m and hold Space.' },
+  bekaa: { title: 'Bekaa Valley air battle', when: '9 to 10 June 1982', where: 'Bekaa Valley, Lebanon', side: 'Israel', type: 'dogfight', you: ['f15'], jets: true, missiles: true,
+    blue: ['f15'], wing: 3, red: ['mig21'], reds: 8, alt: 4000,
+    story: 'One of the largest jet battles ever, with about 150 jets. Israeli F-15s and F-16s shot down more than 80 Syrian aircraft without losing one in air combat.',
+    job: 'Shoot down the MiG-21s. Lock on (keep the red box in front) and press F, or use the gun.' },
+  desertstorm: { title: 'Operation Desert Storm', when: '17 January 1991', where: 'Iraq', side: 'USA', type: 'dogfight', you: ['f15'], jets: true, missiles: true,
+    blue: ['f15'], wing: 3, red: ['mig29'], reds: 6, alt: 5000,
+    story: 'The first night of one of the biggest air campaigns since World War II. US F-15C Eagles fought Iraqi MiG-29s over Iraq.',
+    job: 'Clear the way for the strike aircraft: shoot down the MiG-29s.' }
+};
+let battleId = 'britain', battleSize = 1, battleYou = {};
+const battleNow = () => BATTLES[battleId];
+const battlePlane = () => { const B = battleNow(); return B.you.includes(battleYou[battleId]) ? battleYou[battleId] : B.you[0]; };
+function battlePanelHTML() {
+  const won = stats.battles || {}, B = battleNow();
+  let h = '<span class="label">Pick a battle</span><div class="sitlist">' + Object.entries(BATTLES).map(([k, b]) => `<button class="pc sit" data-b="${k}" aria-pressed="${k === battleId}"><b>${b.title}${won[k] ? ' <i class="tag ok">Won</i>' : ''}</b><span class="n">${b.when}<br>${b.you.map(x => SHORT[x] || REAL[x].name).join(' or ')}</span><span class="r">${b.where} · you fly for ${b.side}</span></button>`).join('') + '</div>';
+  h += `<p class="hint"><b>${B.title}.</b> ${B.story} <b>Your job:</b> ${B.job}</p>`;
+  const opt = (name, id, val, cur, label) => `<input type="radio" name="${name}" id="${id}" value="${val}" ${cur === val ? 'checked' : ''}><label class="o" for="${id}">${label}</label>`;
+  if (B.you.length > 1) h += `<div class="seg"><span class="label">Your plane</span><div class="opts two">${B.you.map(k => opt('by', 'by-' + k, k, battlePlane(), REAL[k].name)).join('')}</div></div>`;
+  h += `<div class="seg"><span class="label">Size</span><div class="opts two">${opt('bz', 'bz-1', '1', String(battleSize), 'Big')}${opt('bz', 'bz-2', '2', String(battleSize), 'Huge (twice the planes)')}</div><span class="hint">The real battles had hundreds or thousands of aircraft; this is a slice of one. ${B.type === 'bomb' || B.missiles ? 'Keys: Space ' + (B.type === 'bomb' ? 'drops bombs' : 'gun · F missile · G flares') + ' · T next target.' : 'Guns only: get close and hold Space · T next target.'}</span></div>`;
+  return h;
+}
+function bindBattlePanel(p) {
+  p.querySelectorAll('[data-b]').forEach(b => b.addEventListener('click', () => { battleId = b.dataset.b; usePlane(battlePlane()); buildModePanel(); }));
+  p.querySelectorAll('input[name=by]').forEach(i => i.addEventListener('change', () => { battleYou[battleId] = i.value; usePlane(battlePlane()); buildModePanel(); }));
+  p.querySelectorAll('input[name=bz]').forEach(i => i.addEventListener('change', () => { battleSize = +i.value; }));
+}
+function battleWorld(BT) {
+  if (BT.type === 'bomb') return bomberWorld({ ...BOMBERS[BT.bomber], ...BT.bomb });
+  if (BT.sea) { const home = { e: 0, n: 0, hdg: 0, len: spec.homeLen, wid: 30, kind: 'home', name: 'Carrier group', elev: 0, num: '36' }; return seaWorld([home], home, () => false); }
+  return makeWorld(spec, worldSeed, 'free');
+}
+// the place a raid is heading for (or your bombers' target), with buildings or ships to show it
+function goalDeco(BT, goal) {
+  const T = [], put = (type, name, de, dn, extra) => T.push({ type, name, e: goal[0] + de, n: goal[1] + dn, psi: Math.random() * Math.PI, r: 20, hp: 1, sp: 0, ours: BT.type === 'intercept', ...extra });
+  if (BT.sea) { put('carrier', 'US carrier', 0, 0, { psi: 0, len: 250, wid: 32 }); put('destroyer', 'US destroyer', 900, 400, { psi: 0, len: 115, wid: 12 }); put('destroyer', 'US destroyer', -800, -300, { psi: 0, len: 115, wid: 12 }); }
+  else { put('factory', BT.goal, 0, 0); put('hangar', BT.goal, 260, 120); put('hangar', BT.goal, -240, 180); put('tank', BT.goal, 120, -260); put('radar', BT.goal, -200, -220); }
+  for (const t of T) { t.alive = true; t.hp0 = 1; t.sink = 0; t.faces = targetFaces(t); t.dead = t.faces; }
+  return T;
+}
+// bombers in the battle (a raid, or the B-17s you escort): fly to the goal in formation, gunners fire at fighters close by
+function bomberGuns(a, dt, t) {
+  const g = a.guns; if (!g || a.gone) return; let k = 0;
+  for (const e of fight.agents) {
+    if (!e.alive || e.team === a.team || e.role === 'bomber' || e.gone) continue;
+    const d = Math.hypot(e.e - a.e, e.n - a.n, e.h - a.h); if (d > g.range) continue;
+    if (Math.random() < 0.5) { e.hp -= g.dps * dt * 2 * (1 - 0.6 * d / g.range); if (e.hp <= 0 && e.alive) kill(e, a); }
+    if (Math.random() < dt * 8) fight.tracers.push({ a: [a.e, a.n, a.h], b: [e.e + gauss() * 12, e.n + gauss() * 12, e.h + gauss() * 8], t });
+    if (++k >= g.n) break;
+  }
+}
+function bomberReached(a, t) {
+  const F = fight, BT = F.BT; a.gone = true; a.reached = true; a.goneT = t;
+  for (let i = 0; i < 3; i++) F.booms.push({ p: [a.goal[0] + gauss() * 120, a.goal[1] + gauss() * 120, groundAt(world, a.goal[0], a.goal[1]) + 4], t: t + i * 0.3, big: true, splash: !!BT.sea });
+  sound.boom();
+  if (a.team === 'red') { F.reached++; note(`${a.name} got through and bombed ${BT.goal}! That's ${F.reached} of the ${F.maxReach} that would lose the battle.`, 4); }
+  else { F.reached++; note(`${a.name} has bombed ${BT.goal}. ${F.reached} of your bombers are through.`, 4); }
+}
+
 // ---------- FIGHT ----------
 let fight = null;
 const LOCK_T = 1.5;   // seconds of keeping the target in front (within 20° and 6 km) to lock a missile on
 function startFight() {
-  const kind = fightKind, B = kind === 'bomber' ? BOMBERS[bomberKey] : null, ww = kind === 'ww2', agents = [];
-  const n = fightSize, nRed = B ? [2, 4, 8][[1, 2, 8].indexOf(n)] : n, nBlue = B ? (B.stealth ? 1 : 1 + Math.floor(nRed / 2)) : n;
-  const side = ww ? WW2[ww2Key].side : 'allies';
-  const redKeys = B ? (B.era === 'jet' ? ['redhawk'] : B.red) : ww ? (side === 'allies' ? ['fw190', 'zero'] : ['spit', 'p51', 'yak3']) : ['redhawk'];
-  const blueKey = i => i === 0 ? fightPlane() : B ? (B.era === 'jet' ? (i % 2 ? 'f22' : 'f35') : 'p51') : ww ? WW2[ww2Key].plane : (i % 2 ? 'f22' : 'f35');
-  const startH = B ? B.alt : ww ? 2500 : 3000, sep = ww ? 9000 : 16000;
+  const BT = world.battle ? BATTLES[world.battle] : null, big = BT ? battleSize : 1;
+  const kind = BT ? (BT.type === 'bomb' ? 'bomber' : BT.missiles ? 'jets' : 'ww2') : fightKind;
+  const B = kind === 'bomber' ? (BT ? { ...BOMBERS[BT.bomber], ...BT.bomb } : BOMBERS[bomberKey]) : null, ww = kind === 'ww2', agents = [];
+  const n = fightSize;
+  let nRed = B ? [2, 4, 8][[1, 2, 8].indexOf(n)] : n, nBlue = B ? (B.stealth ? 1 : 1 + Math.floor(nRed / 2)) : n;
+  if (BT) { nRed = (BT.type === 'intercept' ? BT.escorts : BT.reds) * big; nBlue = 1 + BT.wing * big; }
+  const side = ww && !BT ? WW2[ww2Key].side : 'allies';
+  const redKeys = BT ? (BT.type === 'intercept' ? BT.escort : BT.bomb ? BT.bomb.red : BT.red) : B ? (B.era === 'jet' ? ['redhawk'] : B.red) : ww ? (side === 'allies' ? ['fw190', 'zero'] : ['spit', 'p51', 'yak3']) : ['redhawk'];
+  const blueKey = i => i === 0 ? fightPlane() : B && B.escortKey ? B.escortKey : BT ? BT.blue[i % BT.blue.length] : B ? (B.era === 'jet' ? (i % 2 ? 'f22' : 'f35') : 'p51') : ww ? WW2[ww2Key].plane : (i % 2 ? 'f22' : 'f35');
+  const startH = BT && BT.alt ? BT.alt : B ? B.alt : ww ? 2500 : 3000, sep = ww ? 9000 : 16000;
   const tgts = B ? makeTargets(B) : null, zone = tgts ? zoneOf(tgts) : null;
   const mk = (team, i, key) => {
     const row = Math.floor(i / 2), col = i % 2 ? 1 : -1, pr = REAL[key].engine === 'prop';
@@ -2759,19 +3403,45 @@ function startFight() {
     else { e = col * (180 + row * 160); nn = sep + row * 220; h = startH + (i % 3) * 120; psi = Math.PI; }
     const hp = team === 'blue' && i === 0 ? (B ? B.hp : ww ? 150 : 200) : 100;
     return { team, key, e, n: nn, h, psi, theta: 0, phi: 0, v: pr ? 125 : 235, vc: pr ? 125 : 235, vb: pr ? 145 : 290, vmin: pr ? 85 : 150,
-      gmax: pr ? (team === 'red' ? 1.7 : 2.0) : (team === 'red' ? 5.5 : 6.5), prop: pr, hp, alive: true, missiles: pr ? 0 : (team === 'blue' ? 4 : B ? 1 : 2), flares: pr ? 0 : 6,
-      cool: team === 'blue' ? 4 + Math.random() * 4 : 12 + Math.random() * 8, lastFlare: -9, wob: Math.random() * 10, smoke: [], engaged: !B, slot: i, patrolH: h,
-      name: team === 'blue' ? (i ? (B ? 'Escort ' : 'Wingman ') + i : 'You') : (B || ww ? `${SHORT[key]} ${i + 1}` : 'Red ' + (i + 1)) };
+      gmax: pr ? (team === 'red' ? 1.7 : 2.0) : (team === 'red' ? 5.5 : 6.5), prop: pr, hp, alive: true, missiles: pr || (BT && !BT.missiles) ? 0 : (team === 'blue' ? 4 : B || BT ? 1 : 2), flares: pr ? 0 : 6,
+      cool: team === 'blue' ? 4 + Math.random() * 4 : (BT ? 25 : 12) + Math.random() * 8, lastFlare: -9, wob: Math.random() * 10, smoke: [], engaged: !B, slot: i, patrolH: h,
+      name: team === 'blue' ? (i ? (B && B.escortBomber ? SHORT[key] + ' ' : B ? 'Escort ' : 'Wingman ') + i : 'You') : (B || ww || BT ? `${SHORT[key] || REAL[key].name} ${i + 1}` : 'Red ' + (i + 1)) };
   };
   for (let i = 0; i < nBlue; i++) agents.push(mk('blue', i, blueKey(i)));
+  // in a battle bomb run the planes around you are bombers too: they hold formation on you and their gunners fire
+  if (B && B.escortBomber) for (const a of agents) if (!a.player && a.team === 'blue') Object.assign(a, { role: 'bomber', formOn: agents[0], guns: { range: 700, dps: 6, n: 2 }, hp: 160 });
   for (let i = 0; i < nRed; i++) agents.push(mk('red', i, redKeys[i % redKeys.length]));
   agents[0].player = true;
+  // battles: a bomber raid heading for a goal (intercept: theirs, escort: yours)
+  let goal = null, deco = null;
+  if (BT && (BT.type === 'intercept' || BT.type === 'escort')) {
+    const red = BT.type === 'intercept', nR = BT.raiders * big;
+    goal = red ? [0, -26000] : [0, 22000];
+    const rv = BT.raidV, raid = [];
+    for (let i = 0; i < nR; i++) {
+      const row = Math.floor(i / 3), col = (i % 3) - 1, off = [col * 240 + (row % 2) * 120, row * (red ? 260 : -260)];
+      const a = mk(red ? 'red' : 'blue', i, BT.raid);
+      Object.assign(a, { role: 'bomber', e: off[0] + (red ? 0 : 450), n: (red ? 12000 : -150) + off[1], h: startH + (i % 2) * 40 + (red ? 0 : -60), psi: red ? Math.PI : 0, v: rv, vc: rv, vb: rv, vmin: rv * 0.8,
+        goal: [goal[0] + off[0], goal[1] + off[1]], guns: BT.raidGuns || null, hp: red ? 100 : 180, slot: i, engaged: true, name: `${SHORT[BT.raid]} ${i + 1}` });
+      raid.push(a); agents.push(a);
+    }
+    for (const a of agents) {
+      if (a.role || a.player) continue;
+      if (red && a.team === 'red') {   // escorts start above the raid and stay with it until they see a fighter coming
+        const b = raid[a.slot % raid.length]; Object.assign(a, { e: b.e + (a.slot % 2 ? 300 : -300), n: b.n - 300, h: b.h + 400, psi: Math.PI, escortOf: b, engaged: false });
+      }
+      if (!red && a.team === 'red') { a.hunt = a.slot % 3 !== 2; }   // most enemy fighters go for your bombers
+      if (red && a.team === 'blue') a.hunt = a.slot % 3 !== 0;        // most of your wingmen go for the bombers
+    }
+    deco = goalDeco(BT, goal);
+  }
   const jetGuns = kind === 'jets' || (B && B.era === 'jet');
-  fight = { kind, B, ww, agents, missiles: [], flares: [], booms: [], chutes: [], tracers: [], lockT: 0, lock: null, target: null, missilesLeft: kind === 'jets' ? 6 : 0, flaresLeft: jetGuns ? 12 : 0, kills: 0, gunKills: 0, warn: false, gunT: 0,
-    noLock: kind !== 'jets', hp0: agents[0].hp, tgts, zone, bombs: [], bombsLeft: B ? B.bombs : 0, bombsUsed: 0, stickQ: 0, stickT: 0, dropCool: 0, puffs: [], flakT: 1, gunT2: 0, alerted: false, ip: null, bombTip: '' };
+  fight = { kind, B, BT, big, ww, agents, missiles: [], flares: [], booms: [], chutes: [], tracers: [], lockT: 0, lock: null, target: null, missilesLeft: kind === 'jets' ? 6 : 0, flaresLeft: jetGuns ? 12 : 0, kills: 0, gunKills: 0, warn: false, gunT: 0,
+    noLock: kind !== 'jets', hp0: agents[0].hp, tgts: tgts || deco, deco: !!deco, zone: zone || goal, goal, reached: 0, maxReach: BT && BT.maxReach ? BT.maxReach * big : 0, minSafe: BT && BT.minSafe ? BT.minSafe * big : 0,
+    bombs: [], bombsLeft: B ? B.bombs : 0, bombsUsed: 0, stickQ: 0, stickT: 0, dropCool: 0, puffs: [], flakT: 1, gunT2: 0, alerted: false, ip: null, bombTip: '' };
   others = agents.filter(a => !a.player);
   const s0 = spec, sig = Math.exp(-startH / 8500), v0 = Math.max(s0.vStall / Math.sqrt(sig) * 1.5, Math.min(230, s0.vMax * 0.85));
-  airborne(flight, { e: 0, n: 0, h: startH, psi: 0, v: kind === 'jets' ? 240 : v0, thr: 0.8 });
+  airborne(flight, { e: 0, n: 0, h: startH, psi: 0, v: kind === 'jets' ? 240 : BT && BT.type === 'escort' ? Math.max(v0 * 0.8, BT.raidV + 15) : v0, thr: 0.8 });
 }
 function fwdOf(a) { return [Math.sin(a.psi) * Math.cos(a.theta * DEG), Math.cos(a.psi) * Math.cos(a.theta * DEG), Math.sin(a.theta * DEG)]; }
 function syncPlayerAgent() {
@@ -2790,7 +3460,7 @@ const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) * 1.4;
 function fightUpdate(dt) {
   const F = fight, A = F.agents, t = flight.t, B = F.B; syncPlayerAgent();
   const P = A[0];
-  const enemiesOf = a => A.filter(b => b.alive && b.team !== a.team);
+  const enemiesOf = a => A.filter(b => b.alive && !b.gone && b.team !== a.team);
   if (B) {   // moving ships, enemy radar
     for (const tg of F.tgts) { if (tg.alive && tg.sp) { tg.e += Math.sin(tg.psi) * tg.sp * dt; tg.n += Math.cos(tg.psi) * tg.sp * dt; } if (!tg.alive && tg.len) tg.sink = Math.min(30, tg.sink + dt * 0.7); }
     F.zone = zoneOf(F.tgts);
@@ -2806,7 +3476,24 @@ function fightUpdate(dt) {
     if (!a.alive) { if (a.falling) { a.theta = Math.max(-70, a.theta - 25 * dt); a.phi += 120 * dt; const fw = fwdOf(a); a.e += fw[0] * a.v * dt; a.n += fw[1] * a.v * dt; a.h += fw[2] * a.v * dt; if (Math.random() < 0.5) { a.smoke.push([a.e, a.n, a.h]); if (a.smoke.length > 40) a.smoke.shift(); } if (a.h < 0) a.falling = false; } continue; }
     const red = a.team === 'red', maxRate = a.gmax * G / Math.max(a.prop ? 70 : 120, a.v);
     let dYaw = a.psi, dPitch = 0, vWant = null;
-    if (B && !a.engaged && red) {   // patrol a circle over the target
+    if (a.role === 'bomber') {   // battle bombers: formation or a straight run to the goal, gunners always busy
+      if (a.gone) { if (t - a.goneT > 40) { a.alive = false; continue; } }
+      else if (a.formOn) {
+        const L = a.formOn, fx = Math.sin(L.psi), fy = Math.cos(L.psi), back = 120 * Math.ceil(a.slot / 2), sd = (a.slot % 2 ? 1 : -1) * 150;
+        const se = L.e - fx * back + fy * sd, sn = L.n - fy * back - fx * sd;
+        dYaw = Math.atan2(se + fx * 500 - a.e, sn + fy * 500 - a.n); dPitch = Math.max(-0.3, Math.min(0.3, Math.atan2(L.h - 30 - a.h, 500)));
+        vWant = Math.max(a.vmin, Math.min(a.vb * 1.15, (L.v || a.vc) - ((a.e - se) * fx + (a.n - sn) * fy) * 0.08));
+      } else {
+        dYaw = Math.atan2(a.goal[0] - a.e, a.goal[1] - a.n); dPitch = Math.max(-0.15, Math.min(0.15, (a.patrolH - a.h) / 600)); vWant = a.vc;
+        if (Math.hypot(a.goal[0] - a.e, a.goal[1] - a.n) < 900) bomberReached(a, t);
+      }
+      bomberGuns(a, dt, t);
+    } else if (a.escortOf && !a.engaged) {   // raid escort: stay above the bombers until enemy fighters come close
+      const L = a.escortOf;
+      if (!L.alive || L.gone || enemiesOf(a).some(b => b.role !== 'bomber' && Math.hypot(b.e - a.e, b.n - a.n, b.h - a.h) < 6000)) a.engaged = true;
+      const fx = Math.sin(L.psi), fy = Math.cos(L.psi), sd = (a.slot % 2 ? 1 : -1) * 300, se = L.e - fx * 300 + fy * sd, sn = L.n - fy * 300 - fx * sd;
+      dYaw = Math.atan2(se + fx * 600 - a.e, sn + fy * 600 - a.n); dPitch = Math.max(-0.3, Math.min(0.3, Math.atan2(L.h + 400 - a.h, 600))); vWant = Math.max(a.vmin, (L.v || a.vc) + 5);
+    } else if (B && !a.engaged && red) {   // patrol a circle over the target
       const dx = a.e - F.zone[0], dy = a.n - F.zone[1], r = Math.hypot(dx, dy), ang = Math.atan2(dx, dy);
       dYaw = ang + Math.PI / 2 + Math.max(-0.7, Math.min(0.7, (r - 2500) / 1500)); dPitch = Math.max(-0.2, Math.min(0.2, (a.patrolH - a.h) / 600)); vWant = a.vc * 0.85;
     } else if (B && !a.engaged) {   // escort: hold formation on the bomber
@@ -2816,9 +3503,9 @@ function fightUpdate(dt) {
       dYaw = Math.atan2(se + fx * 500 - a.e, sn + fy * 500 - a.n); dPitch = Math.max(-0.3, Math.min(0.3, Math.atan2(P.h + 40 - a.h, 500)));
       vWant = Math.max(a.vmin, Math.min(a.vb, P.v - ((a.e - se) * fx + (a.n - sn) * fy) * 0.08));
     } else {
-      if (!a.tgt || !a.tgt.alive) {
-        const es = enemiesOf(a), load = x => A.filter(b => b.alive && b.tgt === x).length;
-        a.tgt = (B && red && a.slot % 2 === 0 && P.alive) ? P : es.sort((x, y) => (load(x) - load(y)) * 1e6 + Math.hypot(x.e - a.e, x.n - a.n) - Math.hypot(y.e - a.e, y.n - a.n))[0] || null;
+      if (!a.tgt || !a.tgt.alive || a.tgt.gone) {
+        const es = enemiesOf(a), load = x => A.filter(b => b.alive && b.tgt === x).length, hunt = x => a.hunt && x.role !== 'bomber' && es.some(y => y.role === 'bomber') ? 1 : 0;
+        a.tgt = (B && red && a.slot % 2 === 0 && P.alive) ? P : es.sort((x, y) => (hunt(x) - hunt(y)) * 1e8 + (load(x) - load(y)) * 1e6 + Math.hypot(x.e - a.e, x.n - a.n) - Math.hypot(y.e - a.e, y.n - a.n))[0] || null;
       }
       const threat = F.missiles.find(m => m.target === a && m.alive && Math.hypot(m.p[0] - a.e, m.p[1] - a.n, m.p[2] - a.h) < 3500);
       if (threat) {
@@ -2831,7 +3518,7 @@ function fightUpdate(dt) {
         dPitch = Math.max(-0.5, Math.min(0.5, Math.atan2(ph - a.h, Math.hypot(pe - a.e, pn - a.n))));
         const fw = fwdOf(a), to = [g.e - a.e, g.n - a.n, g.h - a.h], off = Math.acos(Math.max(-1, Math.min(1, (fw[0] * to[0] + fw[1] * to[1] + fw[2] * to[2]) / (d || 1)))) / DEG;
         a.cool -= dt;
-        if (a.missiles > 0 && !(g.player && B && B.stealth) && a.cool <= 0 && d > 1200 && d < (red ? 5500 : 7000) && off < 20) { a.missiles--; a.cool = red ? 14 + Math.random() * 8 : 7; launch(a, g); }
+        if (a.missiles > 0 && !(g.player && B && B.stealth) && a.cool <= 0 && d > 1200 && d < (red ? (F.BT ? 4000 : 5500) : 7000) && off < 20) { a.missiles--; a.cool = red ? 14 + Math.random() * 8 : 7; launch(a, g); }
         if (d < (a.prop ? 650 : 900) && off < (a.prop ? 5 : 4)) { const dmg = (red ? 14 : 26) * dt * (Math.random() < (g.player && B && B.stealth ? 0.35 : 0.7) ? 1 : 0); g.hp -= dmg; F.tracers.push({ a: [a.e, a.n, a.h], b: [g.e, g.n, g.h], t }); if (g.hp <= 0 && g.alive) kill(g, a); }
         if (F.kind !== 'jets') vWant = d > 4000 ? a.vb : d < 1000 ? Math.max(a.vmin, Math.min(a.vb, (g.v || a.vc) + 12)) : a.vc;
         else vWant = Math.hypot(g.e - a.e, g.n - a.n) > 4000 ? 290 : 235;
@@ -2961,12 +3648,25 @@ function fightUpdate(dt) {
     $('h-stunt').textContent = `${left} of ${F.tgts.length} left · ${F.bombsLeft} bombs · ${hpTxt}`;
     if (!left && !flight.result) flight.result = { kind: 'victory', why: `All ${F.tgts.length} targets destroyed using ${F.bombsUsed} bomb${F.bombsUsed > 1 ? 's' : ''}!${F.kills ? ` Your gunners shot down ${F.kills} fighter${F.kills > 1 ? 's' : ''}.` : ''} ${redN ? 'Head for home!' : 'No enemy fighters left in the sky.'}` };
     else if (!F.bombsLeft && !F.stickQ && !F.bombs.length && left && !flight.result) flight.result = { kind: 'nobombs', why: `Out of bombs with ${left} target${left > 1 ? 's' : ''} still standing. Next time line the target up in the bomb sight circle before you drop.` };
+  } else if (F.BT && F.goal) {
+    const BT = F.BT, gunTxt = F.overheat ? 'GUN HOT' : `gun ${Math.round((F.heat || 0) * 100)}%`, raid = A.filter(a => a.role === 'bomber' && !a.formOn), flying = raid.filter(a => a.alive && !a.gone).length;
+    $('g-stunt').classList.toggle('hot', !!F.overheat);
+    if (BT.type === 'intercept') {
+      $('h-stunt').textContent = `${flying} bombers left · ${F.reached} through · ${hpTxt} · ${gunTxt}`;
+      const downed = raid.filter(a => !a.alive && !a.reached).length;
+      if (F.reached >= F.maxReach && !flight.result) flight.result = { kind: 'raided', why: `${F.reached} bombers got through to ${BT.goal}. In the real ${BT.title}, every bomber you stopped mattered. You shot down ${F.kills} aircraft yourself.` };
+      else if (!flying && !flight.result) flight.result = { kind: 'victory', why: `The raid is broken! ${downed} of ${raid.length} bombers shot down${F.reached ? `, only ${F.reached} got through` : ' and not one reached ' + BT.goal}. You got ${F.kills} yourself. Every crew bailed out with a parachute.` };
+    } else {
+      $('h-stunt').textContent = `${flying} B-17s flying · ${F.reached} bombed · ${redN} fighters · ${hpTxt}`;
+      if (flying + F.reached < F.minSafe && !flight.result) flight.result = { kind: 'escortfail', why: `Too many B-17s were shot down: only ${flying + F.reached} could still reach ${BT.goal}, and ${F.minSafe} were needed. You shot down ${F.kills} enemy fighters.` };
+      else if (!flying && !flight.result) flight.result = { kind: 'victory', why: `${F.reached} of ${raid.length} B-17s bombed ${BT.goal}. Escort job done! You shot down ${F.kills} enemy fighters yourself.` };
+    }
   } else {
     const gunTxt = F.overheat ? 'GUN HOT' : `gun ${Math.round((F.heat || 0) * 100)}%`;
     $('h-stunt').textContent = F.kind === 'jets' ? `${blue} v ${redN} · M${F.missilesLeft} F${F.flaresLeft} · ${gunTxt}` : `${blue} v ${redN} · ${hpTxt} · ${gunTxt}`;
     $('g-stunt').classList.toggle('hot', !!F.overheat);
     if (!redN && !flight.result) { const nR = A.filter(a => a.team === 'red').length;
-      flight.result = { kind: 'victory', why: F.kind === 'jets' ? `${nR === 1 ? 'The Red Hawk is' : `All ${nR} Red Hawks are`} knocked out! You got ${F.kills} yourself. Every enemy pilot ejected safely.` : `${nR === 1 ? 'The enemy fighter is' : `All ${nR} enemy fighters are`} down! You got ${F.kills} yourself. Every pilot bailed out with a parachute.` }; }
+      flight.result = { kind: 'victory', why: F.BT ? `All ${nR} ${SHORT[F.BT.red[0]]}s are down! You got ${F.kills} yourself. Every enemy pilot ${F.agents.some(a => a.team === 'red' && !a.prop) ? 'ejected' : 'bailed out'} safely.` : F.kind === 'jets' ? `${nR === 1 ? 'The Red Hawk is' : `All ${nR} Red Hawks are`} knocked out! You got ${F.kills} yourself. Every enemy pilot ejected safely.` : `${nR === 1 ? 'The enemy fighter is' : `All ${nR} enemy fighters are`} down! You got ${F.kills} yourself. Every pilot bailed out with a parachute.` }; }
   }
 }
 function segDist3(q, a, b) { const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], L2 = d[0] ** 2 + d[1] ** 2 + d[2] ** 2 || 1, u = Math.max(0, Math.min(1, ((q[0] - a[0]) * d[0] + (q[1] - a[1]) * d[1] + (q[2] - a[2]) * d[2]) / L2)); return Math.hypot(q[0] - a[0] - d[0] * u, q[1] - a[1] - d[1] * u, q[2] - a[2] - d[2] * u); }
@@ -3073,7 +3773,7 @@ function drawTargetMarkers(ctx, cam) {
 }
 function drawMarkers(ctx, cam, w, h) {
   // markers on every other aircraft; red brackets and lock on the current target
-  const list = world.mode === 'fight' ? fight.agents.filter(a => !a.player && a.alive) : others;
+  const list = world.mode === 'fight' ? fight.agents.filter(a => !a.player && a.alive && !a.gone) : others;
   ctx.font = '600 11px ' + css('--f-mono'); ctx.textAlign = 'center';
   for (const a of list) {
     const q = cam.proj(a.e, a.n, a.h), red = a.team === 'red', isT = world.mode === 'fight' && a === fight.target;
@@ -3191,18 +3891,21 @@ function bailOut() {
 
 function finish() {
   const f = flight, r = f.result;
-  const titles = { victory: world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
+  const titles = { raided: 'The bombers got through', escortfail: 'Too many bombers lost', victory: world.battle ? `${BATTLES[world.battle].title}: victory!` : world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'guard' ? 'President delivered' : world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
   $('r-title').textContent = titles[r.kind];
   $('r-title').className = ['win', 'victory', 'stuntdone', 'ditched', 'bailed'].includes(r.kind) ? 'ok' : r.kind === 'landed' || r.kind === 'decoy' ? 'warn' : 'bad';
   $('r-why').textContent = r.why;
   $('r-sheet').innerHTML = cell('Flown', (f.x / 1000).toFixed(2), 'km') + cell('Highest', Math.round(f.maxH), 'm') +
-    cell('Fastest', kmh(f.maxV), 'km/h') + cell('Peak load', f.maxN.toFixed(1), 'g');
+    cell('Fastest', kmh(f.maxV), 'km/h') + cell('Peak load', f.maxN.toFixed(1), 'g') +
+    (world.mode === 'guard' ? cell('Boarding', f.boardSkipped ? 'skipped' : f.boardT ? mmss(f.boardT) : '--', '') + cell('Flight time', hm(f.t), '') + cell('Fuel left', Math.round(100 * f.fuel / spec.fuel), '%') : '');
   $('r-label').textContent = 'Flight report';
   const save = () => { try { localStorage.setItem('wingwright-stats', JSON.stringify(stats)); } catch (e) {} };
   stats.flights = (stats.flights || 0) + 1; save();
   if (world.mode === 'situation' && world.situation === 'random' && r.kind === 'win') { stats.newSits = (stats.newSits || 0) + 1; save(); $('r-label').textContent = `Random situations handled: ${stats.newSits}`; showBest(); }
   else if (world.mode === 'situation' && ['win', 'ditched', 'bailed'].includes(r.kind)) { stats.sits = stats.sits || {}; stats.sits[world.situation] = true; save(); $('r-label').textContent = `Situation ${Object.keys(stats.sits).length} of 5 done`; showBest(); }
+  else if (world.battle && r.kind === 'victory') { stats.battles = stats.battles || {}; stats.battles[world.battle] = true; save(); $('r-label').textContent = `Battles won: ${Object.keys(stats.battles).length} of 10`; showBest(); }
   else if (world.mode === 'fight' && r.kind === 'victory') { stats.fightWins = (stats.fightWins || 0) + 1; const kk = fight.kind, sz = fightSize, key = `w_${kk}_${sz}`; stats[key] = (stats[key] || 0) + 1; save(); $('r-label').textContent = `${kk === 'bomber' ? 'Bombing runs' : kk === 'ww2' ? 'WW2 battles' : 'Jet battles'} won at this size: ${stats[key]} · ${stats.fightWins} battles in all`; showBest(); }
+  else if (world.mode === 'guard' && r.kind === 'win') { stats.guard = (stats.guard || 0) + 1; if (f.boardT && !f.boardSkipped) stats.boardBest = Math.min(stats.boardBest || 1e9, f.boardT); save(); $('r-label').textContent = `Presidents delivered: ${stats.guard}`; showBest(); }
   else if (world.mode === 'stunt' && r.kind === 'stuntdone') { stats.stuntBest = Math.max(stats.stuntBest || 0, team.score); save(); $('r-label').textContent = `Display score ${team.score}`; showBest(); }
   else if (r.kind === 'win' && world.mode === 'challenge') { stats.peaks = (stats.peaks || 0) + 1; try { localStorage.setItem('wingwright-stats', JSON.stringify(stats)); } catch (e) {} $('r-label').textContent = `Mountain landing ${stats.peaks}`; showBest(); }
   else if (r.kind === 'win') {
@@ -3213,7 +3916,7 @@ function finish() {
   $('result').hidden = false; $('again').focus();
 }
 
-function backToHangar() { sound.quiet(); cancelAnimationFrame(raf); flight = null; $('flight').hidden = true; $('hangar').hidden = false; drawPlan(); startTurntable(); }
+function backToHangar() { sound.quiet(); cancelAnimationFrame(raf); flight = null; walk = null; $('flight').classList.remove('walking'); $('flight').hidden = true; $('hangar').hidden = false; drawPlan(); startTurntable(); }
 $('fly').addEventListener('click', () => startFlight(true));
 $('again').addEventListener('click', () => startFlight(true));
 $('retry').addEventListener('click', () => startFlight(false));
@@ -3241,7 +3944,7 @@ function askRestart() {
 function setPause(on) {
   if (!flight || flight.result || on === paused) return;
   paused = on; $('pause').hidden = !on; for (const k in keys) keys[k] = 0;
-  if (on) $('resume').focus(); else wake();
+  if (on) { $('resume').focus(); $('t-sound').textContent = sound.on ? 'Sound on' : 'Sound off'; } else wake();
   sound.pause(on);
 }
 const togglePause = () => setPause(!paused);
@@ -3250,11 +3953,18 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyP' || e.code === 'Escape') { if (!e.repeat) togglePause(); e.preventDefault(); return; }
   if (e.code === 'KeyR') { if (!e.repeat) askRestart(); return; }
   if (paused || flight.result) return;   // let Space and Enter work the buttons on the pause and results cards
+  if (walk) {   // boarding: walk, check in, stairs
+    if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = 1; e.preventDefault(); return; }
+    if (e.repeat) return;
+    if (e.code === 'Space') { walkAction('check'); e.preventDefault(); } else if (e.code === 'KeyE') walkAction('up'); else if (e.code === 'KeyQ') walkAction('down');
+    return;
+  }
   if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = 1; e.preventDefault(); return; }
   if (e.code === 'Space') { keys.gun = 1; e.preventDefault(); return; }
   if (e.code === 'KeyE') { pilotThrottle(+$('thr').value + 10); e.preventDefault(); return; }   // throttle may repeat while held
   if (e.code === 'KeyQ') { pilotThrottle(+$('thr').value - 10); e.preventDefault(); return; }
   if (e.repeat) return;   // everything else acts once per press, even when the key is held
+  if (e.code === 'KeyK') doSkip();
   if (e.code === 'KeyV') toggleView();
   else if (e.code === 'Digit1' || e.code === 'Numpad1') setFlaps(1);
   else if (e.code === 'Digit2' || e.code === 'Numpad2') setFlaps(2);
@@ -3275,14 +3985,29 @@ window.addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]]
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = 0; });
 document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
 function toggleMap() { mapWide = !mapWide; saveSettings(); }
-$('b-map').addEventListener('click', toggleMap); $('b-pause').addEventListener('click', togglePause); $('b-restart').addEventListener('click', askRestart); $('resume').addEventListener('click', () => setPause(false)); $('b-sound').addEventListener('click', () => sound.toggle()); syncSoundBtn();
+$('b-map').addEventListener('click', toggleMap); $('b-pause').addEventListener('click', togglePause); $('b-restart').addEventListener('click', askRestart); $('resume').addEventListener('click', () => setPause(false)); $('p-restart').addEventListener('click', () => startFlight(false)); $('p-hangar').addEventListener('click', backToHangar); $('b-sound').addEventListener('click', () => sound.toggle()); syncSoundBtn();
 bindHold('b-gun', 'gun'); $('b-msl').addEventListener('click', fireMissile); $('b-flare').addEventListener('click', dropFlares); $('b-tgt').addEventListener('click', nextTarget); $('b-bail').addEventListener('click', bailOut);
 
 function buildFleet() {
-  $('fleet').innerHTML = Object.entries(REAL).filter(([k, r]) => !r.hidden).map(([k, r]) => `<button class="pc" data-k="${k}" aria-pressed="${k === realKey}"><b>${r.name}</b><span class="n">${r.span} m span<br>${r.mass >= 10000 ? Math.round(r.mass / 1000) + ' t' : r.mass + ' kg'}</span><span class="r">${r.role} · ${r.year}${r.freeOnly ? ' <i class="tag">Free fly only</i>' : ''}</span></button>`).join('');
+  $('fleet').innerHTML = Object.entries(REAL).filter(([k, r]) => !r.hidden).map(([k, r]) => `<button class="pc" data-k="${k}" aria-pressed="${k === realKey}"><b>${r.name}</b><span class="n">${r.span} m span<br>${r.mass >= 10000 ? Math.round(r.mass / 1000) + ' t' : r.mass + ' kg'}</span><span class="r">${r.role}${r.madeUp ? '' : ' · ' + r.year}${r.freeOnly ? ' <i class="tag">Free fly only</i>' : ''}</span></button>`).join('');
   document.querySelectorAll('#fleet .pc').forEach(b => b.addEventListener('click', () => { realKey = b.dataset.k; if (pick) pick = { mode: 'real', realKey, design: pick.design }; markFleet(); refresh(); syncModeLock(); saveSettings(); }));
 }
-function markFleet() { document.querySelectorAll('#fleet .pc').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === realKey ? 'true' : 'false'));
+// cutaway of a plane's decks (B-121B / B-121C); the same plans are meant for a future walk-around mode
+function showInside() {
+  const r = REAL[realKey], box = $('inside');
+  if (!r || !r.interior) { box.hidden = true; box.innerHTML = ''; return; }
+  const ft = m => Math.round(m * 3.281).toLocaleString();
+  let seats = 0, html = '';
+  for (const d of r.interior.decks) {
+    const ds = d.rooms.reduce((n, rm) => n + REAL.seatsIn(r.length, rm), 0); seats += ds;
+    html += `<div class="deckrow"><div class="dn"><b>${d.name}</b> · ${d.note}${ds ? ` · ${ds.toLocaleString()} seats` : ''}</div><div class="deckbar" role="img" aria-label="${d.name}: ${d.rooms.map(x => x[0]).join(', ')}">` +
+      d.rooms.map(rm => `<div class="rm ${rm[3]}" style="left:${rm[1] * 100}%;width:${(rm[2] - rm[1]) * 100}%" title="${rm[0]} · ${Math.round((rm[2] - rm[1]) * r.length)} m">${rm[3] === 'stairs' || rm[3] === 'lift' ? '' : rm[0]}</div>`).join('') + '</div></div>';
+  }
+  const list = r.interior.decks.map(d => `<p class="rooms"><b>${d.name}:</b> ${[...new Set(d.rooms.filter(x => x[3] !== 'stairs' && x[3] !== 'lift').map(x => x[0]))].join(', ')}.</p>`).join('');
+  box.innerHTML = `<h3>Inside the ${r.name}</h3><p class="sum">Three full decks, ${ft(r.length)} ft long, nose on the left. ${seats ? seats.toLocaleString() + ' seats in all. ' : ''}Dark blocks are stairs and lifts; scroll sideways for the whole plane, or point at a room for its size. The rooms are set up for a walk-around mode coming later.</p><div class="decks" tabindex="0" aria-label="Deck plans"><div>${html}</div></div>${list}`;
+  box.hidden = false;
+}
+function markFleet() { document.querySelectorAll('#fleet .pc').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === realKey ? 'true' : 'false')); showInside();
 }
 function setMode(m) {
   mode = m; $('tab-custom').setAttribute('aria-selected', m === 'custom'); $('tab-real').setAttribute('aria-selected', m === 'real');
@@ -3300,7 +4025,7 @@ function syncModeLock() {
 const userTab = m => { if (pick) pick.mode = m; setMode(m); saveSettings(); };
 $('tab-custom').addEventListener('click', () => userTab('custom')); $('tab-real').addEventListener('click', () => userTab('real'));
 document.querySelector('.tabs').addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') { e.preventDefault(); const m = e.key === 'Home' ? 'custom' : e.key === 'End' ? 'real' : mode === 'custom' ? 'real' : 'custom'; userTab(m); $('tab-' + m).focus(); } });
-buildFleet();
+buildFleet(); showInside();
 setGameMode('mission');
 {
   const shared = location.hash.startsWith('#d=') ? designFromCode(location.hash.slice(3)) : null;
@@ -3314,6 +4039,8 @@ setGameMode('mission');
   if (MODEHINT[settings.gameMode] && !$('gm-' + settings.gameMode).disabled) { $('gm-' + settings.gameMode).checked = true; setGameMode(settings.gameMode); }
 }
 $('coachopt').addEventListener('change', saveSettings);
+if (['auto', 'touch', 'keys'].includes(settings.controls)) $('ctl-' + settings.controls).checked = true;
+useTouch(); matchMedia('(pointer: coarse)').addEventListener('change', useTouch);
 // keys work by position (e.code), so on AZERTY and other layouts show the letter that is really on that key
 if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(map => {
   document.querySelectorAll('[data-code]').forEach(el => { const l = map.get(el.dataset.code); if (l) el.textContent = l.toUpperCase(); });
