@@ -32,7 +32,7 @@ function specs(p) {
   if (p.fixed) {
     const S = p.S, AR = p.span * p.span / S;
     s = { S, AR, mass: p.mass, dry: p.mass - p.fuel, cd0: p.cd0, nlim: p.nlim, clmax: p.clmax, flapCl: p.flapCl,
-      jet: p.engine === 'jet', supersonic: !!p.supersonic, abMult: p.abMult || 0, transCd: p.transCd || 0, waveCd: p.waveCd || 0, thrust0: p.thrust || 0, power: p.power || 0, vThrustMin: p.vThrustMin || 29,
+      jet: p.engine === 'jet', supersonic: !!p.supersonic, ramMax: p.ramMax || 2.2, abMult: p.abMult || 0, transCd: p.transCd || 0, waveCd: p.waveCd || 0, thrust0: p.thrust || 0, power: p.power || 0, vThrustMin: p.vThrustMin || 29,
       front: p.width * p.height * 0.8, burn: p.fuel / (0.65 * 1200) };
   } else {
     const mat = MATERIALS[p.material], sh = SHAPES[p.shape];
@@ -102,7 +102,7 @@ function mach(v, s, h) {
   return v > 200 ? 0.1 * Math.pow((v - 200) / 40, 2) : 0;
 }
 function thrust(s, v, throttle, rho, h) {
-  if (s.supersonic) return s.thrust0 * throttle * Math.pow(rho / RHO0, 0.75) * (1 + 0.5 * Math.min(v / soundSpeed(h), 2.2));
+  if (s.supersonic) return s.thrust0 * throttle * Math.pow(rho / RHO0, 0.75) * (1 + 0.5 * Math.min(v / soundSpeed(h), s.ramMax || 2.2));   // ram air: more thrust the faster you go, up to ramMax (Mach)
   if (s.jet) return s.thrust0 * throttle * Math.pow(rho / RHO0, 0.75) * Math.max(0.3, 1 - v / 600);
   // propeller: thrust = efficiency x power / speed, but a propeller can't make unlimited thrust standing still,
   // so below vThrustMin (a per-plane speed, not the aviation 'Vref') thrust stops growing

@@ -84,6 +84,15 @@ const REAL = {
   yak3: { name: 'Yakovlev Yak-3', role: 'WWII fighter (Soviet Union)', year: 1944, fixed: true, freeOnly: true, span: 9.2, S: 14.85, length: 8.5, width: 1.0, height: 1.5,
     mass: 2690, fuel: 300, engine: 'prop', power: 960, vThrustMin: 48, props: 'nose', cd0: 0.021, nlim: 12, clmax: 1.45, flapCl: 0.5, incidence: 2,
     tail: 'small', shape: 'sleek', material: 'alu', sweep: 0, taper: 0.5, wing: 'low', tailWheel: true, maxBank: 75, rollRate: 85, ceiling: 8000 },
+  // ramMax: the Mach number up to which ram air keeps adding thrust (the SR-71's J58 engines worked partly like ramjets)
+  sr71: { name: 'Lockheed SR-71 Blackbird', role: 'Mach 3 spy plane (USA)', year: 1966, fixed: true, freeOnly: true, span: 16.94, S: 167.2, length: 32.74, width: 2.6, height: 2.2,
+    mass: 60000, fuel: 20000, engine: 'jet', thrust: 226000, abMult: 1.33, jets: 2, pods: [{ y: 0.36, w: 1.9, l: 14 }], cd0: 0.012, nlim: 4.5, clmax: 1.1, flapCl: 0.1, incidence: 4,
+    tail: 'medium', shape: 'sleek', material: 'alu', sweep: 60, taper: 0.08, wingY: 0.42, wing: 'mid', noHT: true, twinFin: true, canopy: [0.17, 0.31],
+    supersonic: true, transCd: 0.025, waveCd: 0.003, ramMax: 4.0, ceiling: 25900, maxBank: 45, rollRate: 60 },
+  x59: { name: 'Lockheed Martin X-59 Quesst', role: 'NASA quiet supersonic research jet', year: 2025, fixed: true, freeOnly: true, quietBoom: true, span: 9.0, S: 37, length: 30.4, width: 1.6, height: 1.6,
+    mass: 13500, fuel: 3500, engine: 'jet', thrust: 57800, abMult: 1.69, jets: 1, pods: [], cd0: 0.016, nlim: 6, clmax: 1.2, flapCl: 0.3, incidence: 2,
+    tail: 'small', shape: 'sleek', material: 'alu', sweep: 62, taper: 0.15, wingY: 0.35, wing: 'low', tallFin: true, canopy: [0.36, 0.46],
+    supersonic: true, transCd: 0.03, waveCd: 0.04, ceiling: 16800, maxBank: 60, rollRate: 90 },
   // Battle mode aircraft (free fly only for the player; Battle mode also flies them)
   hurricane: { name: 'Hawker Hurricane Mk I', role: 'WWII fighter (Britain)', year: 1937, fixed: true, freeOnly: true, span: 12.19, S: 23.9, length: 9.84, width: 1.1, height: 1.7,
     mass: 3000, fuel: 300, engine: 'prop', power: 768, vThrustMin: 46, props: 'nose', cd0: 0.025, nlim: 12, clmax: 1.5, flapCl: 0.6, incidence: 2,

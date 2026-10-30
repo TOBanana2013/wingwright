@@ -734,7 +734,8 @@ function drawSide(ctx, x, y, s, theta, thr, broken, stroke) {
   sidePath(ctx, L, H, plane.shape); ctx.stroke();
   if (plane.hump) { ctx.beginPath(); ctx.ellipse(n - 0.2 * L, -g - H, 0.17 * L, 0.2 * H, 0, Math.PI, 0); ctx.fill(); ctx.stroke(); }
   ctx.fillStyle = 'rgba(40,70,100,.75)';
-  if (plane.fixed && L > 20) { const wy = plane.hump ? -g - 1.12 * H : -g - 0.78 * H; ctx.beginPath(); ctx.moveTo(n - 0.06 * L, wy); ctx.lineTo(n - 0.03 * L, wy + 0.04 * L * 0.3); ctx.lineTo(n - 0.08 * L, wy + 0.04 * L * 0.3); ctx.closePath(); ctx.fill(); ctx.fillStyle = 'rgba(40,70,100,.5)'; for (let i = 0; i < 18; i++) ctx.fillRect(n - 0.14 * L - i * 0.042 * L, -g - 0.66 * H, 0.012 * L, 0.1 * H); }
+  if (plane.canopy) { const c0 = plane.canopy[0] * L, c1 = plane.canopy[1] * L; ctx.beginPath(); ctx.ellipse(n - (c0 + c1) / 2, -g - H, (c1 - c0) / 2, Math.min(0.55, 0.3 * H + 0.15), 0, Math.PI, 0); ctx.fill(); ctx.stroke(); }
+  else if (plane.fixed && L > 20) { const wy = plane.hump ? -g - 1.12 * H : -g - 0.78 * H; ctx.beginPath(); ctx.moveTo(n - 0.06 * L, wy); ctx.lineTo(n - 0.03 * L, wy + 0.04 * L * 0.3); ctx.lineTo(n - 0.08 * L, wy + 0.04 * L * 0.3); ctx.closePath(); ctx.fill(); ctx.fillStyle = 'rgba(40,70,100,.5)'; for (let i = 0; i < 18; i++) ctx.fillRect(n - 0.14 * L - i * 0.042 * L, -g - 0.66 * H, 0.012 * L, 0.1 * H); }
   else { ctx.beginPath(); ctx.ellipse(n - 0.26 * L, -g - H, Math.min(1.2, 0.11 * L), Math.min(0.55, 0.3 * H + 0.15), 0, Math.PI, 0); ctx.fill(); ctx.stroke(); }
   const wx0 = n - (plane.wingY || (plane.fixed && plane.sweep ? 0.33 : 0.25)) * L + 0.1, wy0 = -g - (plane.wing === 'high' ? 0.92 : 0.3) * H;
   ctx.save(); ctx.translate(wx0, wy0); ctx.rotate(-plane.incidence * Math.PI / 180);
@@ -1428,7 +1429,7 @@ function frameUI(dt) {
     } else if (flight.tailWarn) $('tip').textContent = 'Easy on the nose! The tail is nearly scraping the runway. Hold this angle and let the plane lift off.';
     else if (v > spec.vLift) $('tip').textContent = 'Lift-off speed! Hold Nose up now.';
     if (spec.supersonic) {
-      if (v >= soundSpeed(flight.h) && !flight.boom) { flight.boom = true; note('BOOM! Sonic boom: you are flying faster than the speed of sound (Mach 1).', 6); }
+      if (v >= soundSpeed(flight.h) && !flight.boom) { flight.boom = true; note(plane.quietBoom ? 'thump... You are supersonic (Mach 1). The X-59’s long, carefully shaped nose spreads out the shock waves, so people below hear a soft thump instead of a loud sonic boom.' : 'BOOM! Sonic boom: you are flying faster than the speed of sound (Mach 1).', 7); }
       else if (v < soundSpeed(flight.h) * 0.95) flight.boom = false;
     }
     if (world.mode === 'guard') { const left = Math.max(0, G0.dtg); setText('h-stunt', `${Math.round(left / 1000).toLocaleString()} km · ${hm(left / world.cruiseV)}`); }
@@ -1505,6 +1506,8 @@ const LIVERY = {
   b52: { body: '#8a9096', belly: '#6f757b', stripe: '#767c82', tail: '#8a9096', wing: '#8a9096', engine: '#70767c' },
   f35: { body: '#5d646d', belly: '#555b63', stripe: '#565c64', tail: '#5d646d', wing: '#5d646d', engine: '#3a3f45' },
   f35c: { body: '#5d646d', belly: '#555b63', stripe: '#565c64', tail: '#5d646d', tailStripe: '#2c3a52', wing: '#5d646d', engine: '#3a3f45' },
+  sr71: { body: '#1c1e22', belly: '#17191c', stripe: '#24272c', tail: '#1c1e22', tailStripe: '#c8102e', wing: '#1c1e22', engine: '#15171a' },
+  x59: { body: '#f4f6f8', belly: '#dfe3e8', stripe: '#1f4fa8', tail: '#f4f6f8', tailStripe: '#c8102e', wing: '#eef1f4', engine: '#c9ced4' },
   concorde: { body: '#fbfbfb', belly: '#eef0f2', stripe: '#1b3a7a', tail: '#fbfbfb', tailStripe: '#c8102e', wing: '#f1f2f4', engine: '#e5e7ea' },
   extra: { body: '#f7f3ea', belly: '#f7f3ea', stripe: '#d7262b', tail: '#d7262b', tailStripe: '#f2c230', wing: '#d7262b', wingAlt: '#f7f3ea', spinner: '#f2c230' },
   f22: { body: '#7d8792', belly: '#717a85', stripe: '#737c87', tail: '#7d8792', wing: '#7d8792', engine: '#4a5058' },
@@ -1629,8 +1632,8 @@ function buildModel(p, gearDown, lvIn) {
   }
   // canopy / windows
   const glass = [38, 64, 92];
-  if (L < 20) {
-    const u0 = p.aero ? 0.34 : 0.2, u1 = p.aero ? 0.52 : 0.4, ts = [0, 0.25, 0.5, 0.75, 1], n = 7;
+  if (L < 20 || p.canopy) {   // fighter-style bubble canopy (p.canopy = where it starts and ends, as fractions of the length from the nose)
+    const u0 = p.canopy ? p.canopy[0] : p.aero ? 0.34 : 0.2, u1 = p.canopy ? p.canopy[1] : p.aero ? 0.52 : 0.4, ts = [0, 0.25, 0.5, 0.75, 1], n = 7;
     const cring = ts.map(tt => { const u = u0 + (u1 - u0) * tt, s = Math.pow(Math.sin(Math.PI * tt), 0.6), z0 = topAt(u) - H * 0.06;
       return Array.from({ length: n }, (_, i) => { const a = Math.PI * i / (n - 1); return [L / 2 - u * L, W * 0.36 * s * Math.cos(a), z0 + H * 0.3 * s * Math.sin(a)]; }); });
     for (let i = 0; i < ts.length - 1; i++) for (let k = 0; k < n - 1; k++) F([cring[i][k], cring[i][k + 1], cring[i + 1][k + 1], cring[i + 1][k]], glass, { glass: true });

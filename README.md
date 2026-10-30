@@ -1,6 +1,6 @@
 # Wingwright
 
-A build-a-plane flight simulator that runs in the browser. Design your own plane or fly real aircraft, from a Cessna 172 to an A380, a Spitfire, an F-22 and a B-2.
+A build-a-plane flight simulator that runs in the browser. Design your own plane or fly real aircraft, from a Cessna 172 to an A380, a Spitfire, an F-22, a B-2, the Mach 3 SR-71 Blackbird and NASA's quiet supersonic X-59.
 
 **Play:** open `index.html` in any modern browser. Everything is in that one file.
 
