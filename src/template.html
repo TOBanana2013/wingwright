@@ -106,6 +106,7 @@ button:focus-visible, .chip:focus-visible { outline: 2px solid var(--accent); ou
 .alert.terr { top: 120px; animation: blink .5s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .alert.terr { animation: none; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .tip { background: rgba(8,14,20,.85) !important; }
 .alert { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: #c22f2f; color: #fff; font: 800 20px var(--f-display); letter-spacing: .12em; padding: 4px 16px; border-radius: 3px; }
 .tip { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); background: rgba(10,20,30,.75); color: #eef4f8; font-size: 13.5px; padding: 6px 12px; border-radius: 3px; max-width: calc(100% - 24px); text-align: center; }
@@ -398,7 +399,7 @@ html.touch .flight.walking .tbtns { bottom: 12px !important; right: 14px !import
       <div class="alert terr" id="terr" role="alert" hidden>TERRAIN · PULL UP</div>
       <div class="alert terr" id="missile" role="alert" hidden>MISSILE · TURN + FLARES (<span data-code="KeyG">G</span>)</div>
       <div class="alert" id="eng" role="alert" hidden>ENGINE FAILURE</div>
-      <div class="tip" id="tip" role="status" aria-live="polite"></div>
+      <div class="tip" id="tip" aria-live="off"></div><div id="tip-announcement" class="sr-only" role="status" aria-live="polite"></div>
       <div class="touchui" id="touchui" hidden>
         <div class="ttop">
           <button class="tbtn sm" data-for="b-pause">Pause</button>
@@ -428,7 +429,7 @@ html.touch .flight.walking .tbtns { bottom: 12px !important; right: 14px !import
         <p class="turnme" id="t-turn">Turn your phone sideways for a bigger view.</p>
       </div>
       <ol class="coach" id="coach" aria-label="First flight checklist" hidden></ol>
-      <div class="result" id="pause" hidden><div class="card"><span class="label">Paused</span><h3>Paused</h3><p class="keyonly">Take a breather. Press <kbd data-code="KeyP">P</kbd> or <kbd>Esc</kbd> to carry on.</p><div class="go"><button class="btn" id="resume">Resume</button><button class="btn ghost" id="p-restart">Restart</button><button class="btn ghost" id="p-hangar">Hangar</button><button class="btn ghost touchonly" id="t-full">Full screen</button><button class="btn ghost touchonly" id="t-sound">Sound on</button></div></div></div>
+      <div class="result" id="pause" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="card"><span class="label">Paused</span><h3 id="pause-title">Paused</h3><p class="keyonly">Take a breather. Press <kbd data-code="KeyP">P</kbd> or <kbd>Esc</kbd> to carry on.</p><div class="go"><button class="btn" id="resume">Resume</button><button class="btn ghost" id="p-restart">Restart</button><button class="btn ghost" id="p-hangar">Hangar</button><button class="btn ghost touchonly" id="t-full">Full screen</button><button class="btn ghost touchonly" id="t-sound">Sound on</button></div></div></div>
       <div class="result" id="result" role="dialog" aria-modal="true" aria-labelledby="r-title" hidden>
         <div class="card">
           <span class="label" id="r-label">Flight report</span>
@@ -812,7 +813,15 @@ function nearRunway(e, n, m) { return world.runways.some(w => { const [a, c] = r
 const hdgTxt = r => String(Math.round(((r / DEG) % 360 + 360) % 360)).padStart(3, '0') + '°';
 
 function sizeAll() { view = sizeCanvas($('view'), 1.5); mini = sizeCanvas($('mini')); chart = sizeCanvas($('pathchart')); hmap = sizeCanvas($('hmap')); }
+let lastTipKind = '', lastTipAnnouncement = 0, keyboardLayout = null;
+function setTip(text) {
+  const tip = $('tip'); tip.hidden = !text; if (tip.textContent !== text) tip.textContent = text;
+  const kind = text.replace(/\b\d+(?:[.,]\d+)?\b/g, '#').replace(/\s+/g, ' ').trim();
+  const now = performance.now();
+  if (kind && kind !== lastTipKind && now - lastTipAnnouncement >= 3000) { $('tip-announcement').textContent = kind; lastTipKind = kind; lastTipAnnouncement = now; }
+}
 function startFlight(newMission) {
+  if (!$('result').hidden) { restoreDialogFocus(resultReturnFocus); resultReturnFocus = null; }
   if (newMission || !world) { worldSeed = (Math.random() * 1e9) | 0; }
   if (gameMode === 'situation') {
     if (newMission || !rolled) {
@@ -880,7 +889,7 @@ function startFlight(newMission) {
   $('g-stunt').hidden = !(spec.aero || world.mode === 'fight' || world.mode === 'stunt' || world.mode === 'guard' || showX); $('l-stunt').textContent = world.mode === 'guard' ? 'Trip left' : world.mode === 'fight' ? 'Battle' : world.mode === 'stunt' ? 'Display' : sx === 'wind' ? 'Wind' : sx === 'medical' ? 'Time left' : sx === 'fuel' ? 'Fuel leak' : 'Stunts';
   if ((world.mode === 'fight' || world.mode === 'stunt') && viewMode === 'cockpit' && world.mode === 'stunt') toggleView();
   G0 = guide(flight, spec); D0 = G0.dtg; trail = []; trailT = 0; trailMax = 0;
-  $('tip').hidden = false; $('tip').textContent = flight.flew ? (world.situation === 'carrier' ? 'Carrier landing: fly the green line straight into the deck. No flare. The wire will stop you.' : world.situation === 'storm' ? 'Storm! Expect big bumps. Follow the green line and keep your speed up.' : world.situation === 'himalaya' ? 'Follow the green route up the valley. Do not fly over the peaks: watch the terrain warning.' : world.situation === 'ocean' ? 'Cruising over the ocean...' : '') : `Push the throttle up (E). At ${kmh(spec.vLift)} km/h, hold Nose up to lift off.`;
+  setTip(flight.flew ? (world.situation === 'carrier' ? 'Carrier landing: fly the green line straight into the deck. No flare. The wire will stop you.' : world.situation === 'storm' ? 'Storm! Expect big bumps. Follow the green line and keep your speed up.' : world.situation === 'himalaya' ? 'Follow the green route up the valley. Do not fly over the peaks: watch the terrain warning.' : world.situation === 'ocean' ? 'Cruising over the ocean...' : '') : `Push the throttle up (${keyLabel('KeyE', 'E')}). At ${kmh(spec.vLift)} km/h, hold Nose up to lift off.`);
   sizeAll(); hist = []; histT = 0;
   paused = false; $('pause').hidden = true; simAcc = 0; restartAsk = 0;
   // controls help: only the parts that matter for this flight
@@ -937,7 +946,7 @@ function startAP4() {
 function toggleBrake() { if (flight) { flight.brake = flight.brake ? 0 : 1; syncToggles(); } }
 for (const k of [1, 2, 3]) $('b-f' + k).addEventListener('click', () => setFlaps(k)); $('b-brake').addEventListener('click', toggleBrake); $('b-rev').addEventListener('click', toggleReverse); $('b-ab').addEventListener('click', toggleAB); $('b-ap4').addEventListener('click', startAP4);
 const VIEWS = ['cockpit', 'chase', 'side'], VIEWNAME = { cockpit: 'Cockpit', chase: 'Chase camera', side: 'Side view' };
-function toggleView() { viewMode = VIEWS[(VIEWS.indexOf(viewMode) + 1) % 3]; saveSettings(); if (viewMode === 'chase' && flight) chaseYaw = flight.psi; $('viewbtn').textContent = 'View: ' + VIEWNAME[viewMode] + ' (V)'; }
+function toggleView() { viewMode = VIEWS[(VIEWS.indexOf(viewMode) + 1) % 3]; saveSettings(); if (viewMode === 'chase' && flight) chaseYaw = flight.psi; $('viewbtn').textContent = 'View: ' + VIEWNAME[viewMode] + ' (' + keyLabel('KeyV', 'V') + ')'; }
 $('viewbtn').addEventListener('click', toggleView);
 
 // ---------- sound: made live with Web Audio, no sound files ----------
@@ -1425,9 +1434,9 @@ function frameUI(dt) {
         else if (world.mode === 'stunt') msg = nt || (STUNTS[team.i] ? STUNTS[team.i].msg : '');
         else msg = nt || (flight.engineOut ? `Gliding: ${Math.round(flight.agl)} m above the sea. Keep around 120 km/h. Land gently near the boat, or bail out (J).` : msg);
       }
-      tip.hidden = !msg; if (msg) tip.textContent = msg;
-    } else if (flight.tailWarn) $('tip').textContent = 'Easy on the nose! The tail is nearly scraping the runway. Hold this angle and let the plane lift off.';
-    else if (v > spec.vLift) $('tip').textContent = 'Lift-off speed! Hold Nose up now.';
+      setTip(msg);
+    } else if (flight.tailWarn) setTip('Easy on the nose! The tail is nearly scraping the runway. Hold this angle and let the plane lift off.');
+    else if (v > spec.vLift) setTip('Lift-off speed! Hold Nose up now.');
     if (spec.supersonic) {
       if (v >= soundSpeed(flight.h) && !flight.boom) { flight.boom = true; note(plane.quietBoom ? 'thump... You are supersonic (Mach 1). The X-59’s long, carefully shaped nose spreads out the shock waves, so people below hear a soft thump instead of a loud sonic boom.' : 'BOOM! Sonic boom: you are flying faster than the speed of sound (Mach 1).', 7); }
       else if (v < soundSpeed(flight.h) * 0.95) flight.boom = false;
@@ -3111,6 +3120,10 @@ function bailOut() {
   finish();
 }
 
+let resultReturnFocus = null, pauseReturnFocus = null;
+function restoreDialogFocus(target) {
+  if (target && target.isConnected) target.focus();
+}
 function finish() {
   const f = flight, r = f.result;
   const titles = { raided: 'The bombers got through', escortfail: 'Too many bombers lost', victory: world.battle ? `${BATTLES[world.battle].title}: victory!` : world.mode === 'fight' && fight && fight.B ? 'Bombing run complete!' : 'Victory!', nobombs: 'Out of bombs', shotdown: 'Shot down', stuntdone: 'Display complete', ditched: 'Safe water landing', bailed: 'Bailed out safely', win: world.mode === 'guard' ? 'President delivered' : world.mode === 'situation' ? 'Situation handled' : world.mode === 'challenge' ? 'Challenge beaten' : 'Mission complete', decoy: 'Wrong runway', landed: 'Safe, but missed', crash: 'Crashed', fail: 'Didn’t fly' };
@@ -3135,10 +3148,11 @@ function finish() {
     try { localStorage.setItem('wingwright-stats', JSON.stringify(stats)); } catch (e) {}
     $('r-label').textContent = `Mission ${stats.wins} complete`; showBest();
   }
+  resultReturnFocus = document.activeElement;
   $('result').hidden = false; $('again').focus();
 }
 
-function backToHangar() { sound.quiet(); cancelAnimationFrame(raf); flight = null; walk = null; $('flight').classList.remove('walking'); $('flight').hidden = true; $('hangar').hidden = false; drawPlan(); startTurntable(); }
+function backToHangar() { if (!$('result').hidden) { restoreDialogFocus(resultReturnFocus); resultReturnFocus = null; } sound.quiet(); cancelAnimationFrame(raf); flight = null; walk = null; $('flight').classList.remove('walking'); $('flight').hidden = true; $('hangar').hidden = false; drawPlan(); startTurntable(); }
 $('fly').addEventListener('click', () => startFlight(true));
 $('again').addEventListener('click', () => startFlight(true));
 $('retry').addEventListener('click', () => startFlight(false));
@@ -3165,10 +3179,23 @@ function askRestart() {
 }
 function setPause(on) {
   if (!flight || flight.result || on === paused) return;
+  if (on) pauseReturnFocus = document.activeElement;
   paused = on; $('pause').hidden = !on; for (const k in keys) keys[k] = 0;
-  if (on) { $('resume').focus(); $('t-sound').textContent = sound.on ? 'Sound on' : 'Sound off'; } else wake();
+  if (on) { $('resume').focus(); $('t-sound').textContent = sound.on ? 'Sound on' : 'Sound off'; } else { restoreDialogFocus(pauseReturnFocus); pauseReturnFocus = null; wake(); }
   sound.pause(on);
 }
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const dialog = document.querySelector('.result[role="dialog"]:not([hidden])');
+  if (!dialog) return;
+  const items = [...dialog.querySelectorAll('a[href], area[href], button, input, select, textarea, iframe, object, embed, [contenteditable], [tabindex]')]
+    .filter(el => !el.disabled && el.tabIndex >= 0 && !el.hidden && el.getAttribute('aria-hidden') !== 'true' && el.getClientRects().length)
+    .sort((a, b) => (a.tabIndex === 0 ? Infinity : a.tabIndex) - (b.tabIndex === 0 ? Infinity : b.tabIndex));
+  if (!items.length) { e.preventDefault(); dialog.focus(); return; }
+  const first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+});
 const togglePause = () => setPause(!paused);
 window.addEventListener('keydown', e => {
   if (!flight || e.ctrlKey || e.metaKey || e.altKey) return;   // leave browser shortcuts such as Ctrl+R alone
@@ -3255,7 +3282,7 @@ setGameMode('mission');
   drawSlots();
   if (shared) { $('pmsg').textContent = 'Loaded a design someone shared with you. Save it by name to keep it.'; history.replaceState(null, '', location.pathname + location.search); }
   else if (settings.mode === 'real' && REAL[settings.realKey] && !REAL[settings.realKey].hidden) { realKey = settings.realKey; setMode('real'); markFleet(); }
-  if (VIEWS.includes(settings.viewMode)) { viewMode = settings.viewMode; $('viewbtn').textContent = 'View: ' + VIEWNAME[viewMode] + ' (V)'; }
+  if (VIEWS.includes(settings.viewMode)) { viewMode = settings.viewMode; $('viewbtn').textContent = 'View: ' + VIEWNAME[viewMode] + ' (' + keyLabel('KeyV', 'V') + ')'; }
   mapWide = !!settings.mapWide;
   $('coachopt').checked = settings.coach ?? !((stats.wins || 0) + (stats.flights || 0));
   if (MODEHINT[settings.gameMode] && !$('gm-' + settings.gameMode).disabled) { $('gm-' + settings.gameMode).checked = true; setGameMode(settings.gameMode); }
@@ -3264,9 +3291,12 @@ $('coachopt').addEventListener('change', saveSettings);
 if (['auto', 'touch', 'keys'].includes(settings.controls)) $('ctl-' + settings.controls).checked = true;
 useTouch(); matchMedia('(pointer: coarse)').addEventListener('change', useTouch);
 // keys work by position (e.code), so on AZERTY and other layouts show the letter that is really on that key
-if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(map => {
-  document.querySelectorAll('[data-code]').forEach(el => { const l = map.get(el.dataset.code); if (l) el.textContent = l.toUpperCase(); });
-}).catch(() => {});
+function keyLabel(code, fallback) { return (keyboardLayout && keyboardLayout.get(code) || fallback).toUpperCase(); }
+function updateLayoutLabels() {
+  document.querySelectorAll('[data-code]').forEach(el => { el.textContent = keyLabel(el.dataset.code, el.textContent); });
+  $('viewbtn').textContent = 'View: ' + VIEWNAME[viewMode] + ' (' + keyLabel('KeyV', 'V') + ')';
+}
+if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(map => { keyboardLayout = map; updateLayoutLabels(); }).catch(() => {});
 $('psave').addEventListener('click', () => { if (mode !== 'custom') return; const name = $('pname').value.trim() || 'My plane ' + (slots().length + 1); putSlot(name, plane); $('pname').value = ''; $('pmsg').textContent = `Saved “${name}”.`; });
 $('pshare').addEventListener('click', () => {
   const url = location.href.split('#')[0] + '#d=' + designCode(plane);
